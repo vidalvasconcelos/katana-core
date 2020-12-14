@@ -7,6 +7,7 @@ namespace Katana\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
 use Katana\Builder\Site;
+use Katana\Config;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -16,11 +17,13 @@ final class Build extends Command
 {
     protected Factory $factory;
     protected Filesystem $filesystem;
+    private Config $config;
 
-    public function __construct(Factory $factory, Filesystem $filesystem)
+    public function __construct(Factory $factory, Filesystem $filesystem, Config $config)
     {
-        $this->filesystem = $filesystem;
+        $this->config = $config;
         $this->factory = $factory;
+        $this->filesystem = $filesystem;
         parent::__construct();
     }
 
@@ -41,7 +44,7 @@ final class Build extends Command
             $input->getOption('force')
         );
 
-        $siteBuilder->build();
+        $siteBuilder->build($this->config);
 
         $output->writeln("<info>Site was generated successfully.</info>");
     }

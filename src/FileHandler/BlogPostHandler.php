@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Katana\FileHandler;
 
+use Katana\Config;
 use Katana\Markdown;
 use stdClass;
 use Symfony\Component\Finder\SplFileInfo;
 
 final class BlogPostHandler extends BaseHandler
 {
-    public function getPostData(SplFileInfo $file): stdClass
+    public function getPostData(Config $config, SplFileInfo $file): stdClass
     {
         $this->file = $file;
 
@@ -38,12 +39,12 @@ final class BlogPostHandler extends BaseHandler
             unset($postData[$key]);
         }
 
-        $postData['path'] = str_replace(KATANA_PUBLIC_DIR, '', $this->getDirectoryPrettyName()) . '/';
+        $postData['path'] = str_replace($config->public(), '', $this->getDirectoryPrettyName($config)) . '/';
 
         return json_decode(json_encode($postData), false);
     }
 
-    protected function getDirectoryPrettyName(): string
+    protected function getDirectoryPrettyName(Config $config): string
     {
         $pathName = $this->normalizePath($this->file->getPathname());
 
@@ -58,7 +59,7 @@ final class BlogPostHandler extends BaseHandler
 
         $fileRelativePath = $this->getBlogPostSlug($fileBaseName);
 
-        return KATANA_PUBLIC_DIR . "/$fileRelativePath";
+        return $config->public() . "/$fileRelativePath";
     }
 
     protected function isInsideBlogDirectory(string $pathName): bool

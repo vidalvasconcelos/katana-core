@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Katana\Builder;
 
 use Illuminate\Filesystem\Filesystem;
+use Katana\Config;
 
 final class Post
 {
@@ -19,10 +20,10 @@ final class Post
         $this->template = $template;
     }
 
-    public function build(): void
+    public function build(Config $config): void
     {
         $this->filesystem->put(
-            sprintf('/%s/_blog/%s', KATANA_CONTENT_DIR, $this->nameFile()),
+            sprintf('/%s/_blog/%s', $config->content(), $this->nameFile()),
             $this->buildTemplate()
         );
     }

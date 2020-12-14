@@ -9,6 +9,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Engines\PhpEngine;
 use Illuminate\View\Factory;
+use Katana\Config;
 use Katana\Markdown;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -23,8 +24,9 @@ final class MarkdownFile
     protected BladeCompiler $bladeCompiler;
     protected SplFileInfo $file;
     protected PhpEngine $engine;
+    private Config $config;
 
-    public function __construct(Filesystem $filesystem, Factory $factory, SplFileInfo $file, array $data)
+    public function __construct(Filesystem $filesystem, Factory $factory, SplFileInfo $file, Config $config, array $data)
     {
         $this->filesystem = $filesystem;
         $this->factory = $factory;
@@ -35,9 +37,20 @@ final class MarkdownFile
 
         $this->fileContent = $parsed[0];
         $this->fileYAML = $parsed[1];
-        $this->cached = KATANA_CACHE_DIR . '/' . sha1($this->file->getRelativePathname()) . '.php';
+        $this->cached = $config->cache() . '/' . sha1($this->file->getRelativePathname()) . '.php';
         $this->bladeCompiler = $this->getBladeCompiler();
         $this->engine = $this->getEngine();
+        $this->config = $config;
+    }
+
+    protected function getBladeCompiler(): BladeCompiler
+    {
+        return $this->factory->getEngineResolver()->resolve('blade')->getCompiler();
+    }
+
+    protected function getEngine(): PhpEngine
+    {
+        return new PhpEngine;
     }
 
     public function render(): string
@@ -69,14 +82,15 @@ final class MarkdownFile
             @stop";
     }
 
-    protected function getBladeCompiler(): BladeCompiler
+    protected function isExpired(): bool
     {
-        return $this->factory->getEngineResolver()->resolve('blade')->getCompiler();
-    }
+        if (!$this->filesystem->exists($this->cached)) {
+            return true;
+        }
 
-    protected function getEngine(): PhpEngine
-    {
-        return new PhpEngine;
+        $lastModified = $this->filesystem->lastModified($this->file->getPath());
+
+        return $lastModified >= $this->filesystem->lastModified($this->cached);
     }
 
     protected function getViewData(): array
@@ -90,16 +104,5 @@ final class MarkdownFile
         }
 
         return $data;
-    }
-
-    protected function isExpired(): bool
-    {
-        if (!$this->filesystem->exists($this->cached)) {
-            return true;
-        }
-
-        $lastModified = $this->filesystem->lastModified($this->file->getPath());
-
-        return $lastModified >= $this->filesystem->lastModified($this->cached);
     }
 }

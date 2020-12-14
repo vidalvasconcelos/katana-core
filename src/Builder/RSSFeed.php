@@ -7,6 +7,7 @@ namespace Katana\Builder;
 use Exception;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
+use Katana\Config;
 
 final class RSSFeed
 {
@@ -21,7 +22,7 @@ final class RSSFeed
         $this->data = $data;
     }
 
-    public function build(): void
+    public function build(Config $config): void
     {
         if (!$view = $this->getRSSView()) {
             return;
@@ -30,7 +31,7 @@ final class RSSFeed
         $pageContent = $this->factory->make($view, $this->data)->render();
 
         $this->filesystem->put(
-            sprintf('%s/%s', KATANA_PUBLIC_DIR, 'feed.rss'),
+            sprintf('%s/%s', $config->public(), 'feed.rss'),
             $pageContent
         );
     }

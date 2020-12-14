@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Katana\Builder;
 
+use Exception;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
+use Katana\Config;
 
 final class BlogPagination
 {
@@ -21,31 +23,31 @@ final class BlogPagination
         $this->data = $data;
     }
 
-    public function build(): void
+    public function build(Config $config): void
     {
         $view = $this->getPostsListView();
         $postsPerPage = @$this->data['postsPerPage'] ?: 5;
         $this->pagesData = array_chunk($this->data['blogPosts'], $postsPerPage);
 
         foreach ($this->pagesData as $pageIndex => $posts) {
-            $this->buildPage($pageIndex, $view, $posts);
+            $this->buildPage($config, $pageIndex, $view, $posts);
         }
     }
 
     protected function getPostsListView(): string
     {
-        if (! isset($this->data['postsListView'])) {
-            throw new \Exception('The postsListView config value is missing.');
+        if (!isset($this->data['postsListView'])) {
+            throw new Exception('The postsListView config value is missing.');
         }
 
-        if (! $this->factory->exists($this->data['postsListView'])) {
-            throw new \Exception(sprintf('The "%s" view is not found. Make sure the postsListView configuration key is correct.', $this->data['postsListView']));
+        if (!$this->factory->exists($this->data['postsListView'])) {
+            throw new Exception(sprintf('The "%s" view is not found. Make sure the postsListView configuration key is correct.', $this->data['postsListView']));
         }
 
         return $this->data['postsListView'];
     }
 
-    protected function buildPage(int $pageIndex, string $view, array $posts): void
+    protected function buildPage(Config $config, int $pageIndex, string $view, array $posts): void
     {
         $viewData = array_merge(
             $this->data,
@@ -58,7 +60,7 @@ final class BlogPagination
 
         $pageContent = $this->factory->make($view, $viewData)->render();
 
-        $directory = sprintf('%s/blog-page/%d', KATANA_PUBLIC_DIR, $pageIndex + 1);
+        $directory = sprintf('%s/blog-page/%d', $config->public(), $pageIndex + 1);
 
         $this->filesystem->makeDirectory($directory, 0755, true);
 
@@ -70,24 +72,15 @@ final class BlogPagination
 
     protected function getPreviousPageLink(int $currentPageIndex): ?string
     {
-        if (! isset($this->pagesData[$currentPageIndex - 1])) {
+        if (!isset($this->pagesData[$currentPageIndex - 1])) {
             return null;
         } elseif ($currentPageIndex == 1) {
             // If the current page is the second, then the first page's
             // link should point to the blog's main view.
-            return '/'.$this->getBlogListPagePath();
+            return '/' . $this->getBlogListPagePath();
         }
 
-        return '/blog-page/'.$currentPageIndex.'/';
-    }
-
-    protected function getNextPageLink($currentPageIndex): ?string
-    {
-        if (! isset($this->pagesData[$currentPageIndex + 1])) {
-            return null;
-        }
-
-        return '/blog-page/'.($currentPageIndex + 2).'/';
+        return '/blog-page/' . $currentPageIndex . '/';
     }
 
     protected function getBlogListPagePath(): string
@@ -99,5 +92,14 @@ final class BlogPagination
         }
 
         return $path;
+    }
+
+    protected function getNextPageLink($currentPageIndex): ?string
+    {
+        if (!isset($this->pagesData[$currentPageIndex + 1])) {
+            return null;
+        }
+
+        return '/blog-page/' . ($currentPageIndex + 2) . '/';
     }
 }

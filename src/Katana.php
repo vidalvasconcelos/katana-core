@@ -17,42 +17,42 @@ use Symfony\Component\Console\Application;
 
 final class Katana
 {
-    protected Factory $factory;
-    protected Filesystem $filesystem;
-    protected Application $application;
+    private Application $application;
 
     public function __construct(Application $application)
     {
-        $this->registerConstants();
         $this->application = $application;
-        $this->filesystem = new Filesystem();
-        $this->factory = $this->createViewFactory();
     }
 
-    protected function registerConstants(): void
+    public function handle(Config $config): void
     {
-        // A place to save Blade's cached compilations.
-        define('KATANA_CACHE_DIR', getcwd() . '/_cache');
-
-        // A place to read site source files.
-        define('KATANA_CONTENT_DIR', getcwd() . '/content');
-
-        // A place to output the generated site.
-        define('KATANA_PUBLIC_DIR', getcwd() . '/public');
+        $this->registerCommands($config);
+        $this->application->run();
     }
 
-    protected function createViewFactory(): Factory
+    private function registerCommands(Config $config): void
+    {
+        $filesystem = new Filesystem();
+        $factory = $this->createViewFactory($config, $filesystem);
+
+        $this->application->addCommands([
+            new Post($factory, $filesystem, $config),
+            new Build($factory, $filesystem, $config),
+        ]);
+    }
+
+    private function createViewFactory(Config $config, Filesystem $filesystem): Factory
     {
         $resolver = new EngineResolver();
-        $bladeCompiler = $this->createBladeCompiler();
+        $bladeCompiler = $this->createBladeCompiler($config, $filesystem);
 
-        $resolver->register('blade', function () use ($bladeCompiler) {
+        $resolver->register('blade', static function () use ($bladeCompiler) {
             return new CompilerEngine($bladeCompiler);
         });
 
         $dispatcher = new Dispatcher();
 
-        $dispatcher->listen('creating: *', function () {
+        $dispatcher->listen('creating: *', static function (): void {
             /**
              * On rendering Blade views we will mute error reporting as
              * we don't care about undefined variables or type
@@ -63,35 +63,23 @@ final class Katana
 
         return new Factory(
             $resolver,
-            new FileViewFinder($this->filesystem, [KATANA_CONTENT_DIR]),
+            new FileViewFinder($filesystem, [$config->content()]),
             $dispatcher
         );
     }
 
-    protected function createBladeCompiler(): BladeCompiler
+    private function createBladeCompiler(Config $config, Filesystem $filesystem): BladeCompiler
     {
-        if (!$this->filesystem->isDirectory(KATANA_CACHE_DIR)) {
-            $this->filesystem->makeDirectory(KATANA_CACHE_DIR);
+        $cache = $config->cache();
+
+        if (!$filesystem->isDirectory($cache)) {
+            $filesystem->makeDirectory($cache);
         }
 
         $blade = new Blade(
-            new BladeCompiler($this->filesystem, KATANA_CACHE_DIR)
+            new BladeCompiler($filesystem, $cache)
         );
 
         return $blade->getCompiler();
-    }
-
-    public function handle(): void
-    {
-        $this->registerCommands();
-        $this->application->run();
-    }
-
-    protected function registerCommands(): void
-    {
-        $this->application->addCommands([
-            new Build($this->factory, $this->filesystem),
-            new Post($this->factory, $this->filesystem)
-        ]);
     }
 }

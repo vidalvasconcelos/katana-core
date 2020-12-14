@@ -5,6 +5,7 @@ namespace Katana\Builder;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
 use Illuminate\View\Factory;
+use Katana\Config;
 use Katana\FileHandler\BaseHandler;
 use Katana\FileHandler\BlogPostHandler;
 use Symfony\Component\Finder\SplFileInfo;
@@ -33,10 +34,10 @@ final class Site
         $this->forceBuild = $forceBuild;
     }
 
-    public function build(): void
+    public function build(Config $config): void
     {
         $this->readConfigs();
-        $files = $this->getSiteFiles();
+        $files = $this->getSiteFiles($config);
 
         $otherFiles = array_filter($files, function ($file) {
             return !str_contains($file->getRelativePath(), '_blog');
@@ -47,22 +48,22 @@ final class Site
                 return str_contains($file->getRelativePath(), '_blog');
             });
 
-            $this->readBlogPostsData($blogPostsFiles);
+            $this->readBlogPostsData($config, $blogPostsFiles);
         }
 
         $this->buildViewsData();
-        $this->filesystem->cleanDirectory(KATANA_PUBLIC_DIR);
+        $this->filesystem->cleanDirectory($config->public());
 
         if ($this->forceBuild) {
-            $this->filesystem->cleanDirectory(KATANA_CACHE_DIR);
+            $this->filesystem->cleanDirectory($config->cache());
         }
 
-        $this->handleSiteFiles($otherFiles);
+        $this->handleSiteFiles($config, $otherFiles);
 
         if (@$this->configs['enableBlog']) {
-            $this->handleBlogPostsFiles($blogPostsFiles);
-            $this->buildBlogPagination();
-            $this->buildRSSFeed();
+            $this->handleBlogPostsFiles($config, $blogPostsFiles);
+            $this->buildBlogPagination($config);
+            $this->buildRSSFeed($config);
         }
     }
 
@@ -88,14 +89,16 @@ final class Site
         $this->configs = array_merge($configs, (array)$this->configs);
     }
 
-    protected function getSiteFiles(): array
+    protected function getSiteFiles(Config $config): array
     {
-        $files = $this->filesystem->allFiles(KATANA_CONTENT_DIR);
-        $files = array_filter($files, function (SplFileInfo $file) {
+        $dir = $config->content();
+        $files = $this->filesystem->allFiles($dir);
+
+        $files = array_filter($files, function (SplFileInfo $file): bool {
             return $this->filterFile($file);
         });
 
-        $this->appendFiles($files);
+        $this->appendFiles($config, $files);
 
         return $files;
     }
@@ -108,17 +111,19 @@ final class Site
         );
     }
 
-    protected function appendFiles(array &$files): void
+    protected function appendFiles(Config $config, array &$files): void
     {
-        if ($this->filesystem->exists(KATANA_CONTENT_DIR . '/.htaccess')) {
-            $files[] = new SplFileInfo(KATANA_CONTENT_DIR . '/.htaccess', '', '.htaccess');
+        $dir = $config->content();
+
+        if ($this->filesystem->exists($dir . '/.htaccess')) {
+            $files[] = new SplFileInfo($dir . '/.htaccess', '', '.htaccess');
         }
     }
 
-    protected function readBlogPostsData(array $files): void
+    protected function readBlogPostsData(Config $config, array $files): void
     {
         foreach ($files as $file) {
-            $this->posts[] = $this->blogPostHandler->getPostData($file);
+            $this->posts[] = $this->blogPostHandler->getPostData($config, $file);
         }
     }
 
@@ -129,21 +134,21 @@ final class Site
         $this->blogPostHandler->data = $this->data;
     }
 
-    protected function handleSiteFiles(array $files): void
+    protected function handleSiteFiles(Config $config, array $files): void
     {
         foreach ($files as $file) {
-            $this->fileHandler->handle($file);
+            $this->fileHandler->handle($config, $file);
         }
     }
 
-    protected function handleBlogPostsFiles(array $files): void
+    private function handleBlogPostsFiles(Config $config, array $files): void
     {
         foreach ($files as $file) {
-            $this->blogPostHandler->handle($file);
+            $this->blogPostHandler->handle($config, $file);
         }
     }
 
-    protected function buildBlogPagination(): void
+    protected function buildBlogPagination(Config $config): void
     {
         $builder = new BlogPagination(
             $this->filesystem,
@@ -151,10 +156,10 @@ final class Site
             $this->data
         );
 
-        $builder->build();
+        $builder->build($config);
     }
 
-    protected function buildRSSFeed(): void
+    protected function buildRSSFeed(Config $config): void
     {
         $builder = new RSSFeed(
             $this->filesystem,
@@ -162,7 +167,7 @@ final class Site
             $this->data
         );
 
-        $builder->build();
+        $builder->build($config);
     }
 
     public function setConfig(string $key, $value): void

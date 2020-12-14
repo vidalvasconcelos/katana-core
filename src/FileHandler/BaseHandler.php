@@ -7,6 +7,7 @@ namespace Katana\FileHandler;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
 use Katana\Builder\MarkdownFile;
+use Katana\Config;
 use Symfony\Component\Finder\SplFileInfo;
 
 class BaseHandler
@@ -24,12 +25,12 @@ class BaseHandler
         $this->factory = $viewFactory;
     }
 
-    public function handle(SplFileInfo $file): void
+    public function handle(Config $config, SplFileInfo $file): void
     {
         $this->file = $file;
         $this->view = $this->getViewPath();
-        $this->directory = $this->getDirectoryPrettyName();
-        $this->appendViewInformationToData();
+        $this->directory = $this->getDirectoryPrettyName($config);
+        $this->appendViewInformationToData($config);
 
         if (@$this->data['enableBlog']
             && @$this->data['postsListView'] == $this->view) {
@@ -53,7 +54,7 @@ class BaseHandler
         return str_replace(['.blade.php', '.md'], '', $this->file->getRelativePathname());
     }
 
-    protected function getDirectoryPrettyName(): string
+    protected function getDirectoryPrettyName(Config $config): string
     {
         $fileBaseName = $this->getFileName();
         $fileRelativePath = $this->normalizePath($this->file->getRelativePath());
@@ -63,7 +64,7 @@ class BaseHandler
             $fileRelativePath .= $fileRelativePath ? "/$fileBaseName" : $fileBaseName;
         }
 
-        return KATANA_PUBLIC_DIR . ($fileRelativePath ? "/$fileRelativePath" : '');
+        return $config->public() . ($fileRelativePath ? "/$fileRelativePath" : '');
     }
 
     protected function getFileName(SplFileInfo $file = null): string
@@ -78,10 +79,10 @@ class BaseHandler
         return str_replace("\\", '/', $path);
     }
 
-    protected function appendViewInformationToData(): void
+    protected function appendViewInformationToData(Config $config): void
     {
         $this->data['currentViewPath'] = $this->view;
-        $this->data['currentUrlPath'] = ($path = str_replace(KATANA_PUBLIC_DIR, '', $this->directory)) ? $path : '/';
+        $this->data['currentUrlPath'] = ($path = str_replace($config->public(), '', $this->directory)) ? $path : '/';
     }
 
     protected function prepareBlogIndexViewData(): void

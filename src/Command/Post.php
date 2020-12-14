@@ -7,6 +7,7 @@ namespace Katana\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
 use Katana\Builder\Post as Builder;
+use Katana\Config;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,9 +18,11 @@ final class Post extends Command
 {
     private Factory $factory;
     private Filesystem $filesystem;
+    private Config $config;
 
-    public function __construct(Factory $factory, Filesystem $filesystem)
+    public function __construct(Factory $factory, Filesystem $filesystem, Config $config)
     {
+        $this->config = $config;
         $this->filesystem = $filesystem;
         $this->factory = $factory;
         parent::__construct();
@@ -41,7 +44,7 @@ final class Post extends Command
             $input->getOption('m')
         );
 
-        $post->build();
+        $post->build($this->config);
         $output->writeln(sprintf(
             "<info>Post \"%s\" was generated successfully.</info>",
             $input->getArgument('title')
