@@ -1,34 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana;
 
 use Illuminate\View\Compilers\BladeCompiler;
-use Illuminate\View\Factory;
 
-class Blade
+final class Blade
 {
-    protected $bladeCompiler;
+    protected BladeCompiler $bladeCompiler;
 
-    /**
-     * Blade constructor.
-     *
-     * @param BladeCompiler $bladeCompiler
-     */
     public function __construct(BladeCompiler $bladeCompiler)
     {
         $this->bladeCompiler = $bladeCompiler;
-
         $this->registerMarkdownDirective();
-
         $this->registerURLDirective();
     }
 
-    /**
-     * Register the @markdown and @endmarkdown blade directives.
-     *
-     * @return void
-     */
-    protected function registerMarkdownDirective()
+    protected function registerMarkdownDirective(): void
     {
         $this->bladeCompiler->directive('markdown', function () {
             return "<?php echo \\Katana\\Markdown::parse(<<<'EOT'";
@@ -39,28 +28,17 @@ class Blade
         });
     }
 
-    /**
-     * Register the @url blade directive.
-     *
-     * @return void
-     */
-    protected function registerURLDirective()
+    protected function registerURLDirective(): void
     {
         $this->bladeCompiler->directive('url', function ($expression) {
             $expression = substr($expression, 1, -1);
-
             $trailingSlash = !str_contains($expression, '.') ? '/' : '';
 
             return "<?php echo str_replace(['///', '//'], '/', \$base_url.'/'.trim({$expression}, '/').'{$trailingSlash}');  ?>";
         });
     }
 
-    /**
-     * Get the blade compiler after extension.
-     *
-     * @return BladeCompiler
-     */
-    public function getCompiler()
+    public function getCompiler(): BladeCompiler
     {
         return $this->bladeCompiler;
     }

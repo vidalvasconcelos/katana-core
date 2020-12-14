@@ -1,24 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
+use Traversable;
 
-class BlogPaginationBuilder
+final class BlogPaginationBuilder
 {
-    protected $filesystem;
-    protected $viewFactory;
-    protected $viewsData;
-    protected $pagesData;
+    protected array $viewsData;
+    protected array $pagesData;
+    protected Factory $viewFactory;
+    protected Filesystem $filesystem;
 
-    /**
-     * BlogPaginationBuilder constructor.
-     *
-     * @param Filesystem $filesystem
-     * @param Factory $viewFactory
-     * @param array $viewsData
-     */
     public function __construct(Filesystem $filesystem, Factory $viewFactory, array $viewsData)
     {
         $this->filesystem = $filesystem;
@@ -26,17 +22,10 @@ class BlogPaginationBuilder
         $this->viewsData = $viewsData;
     }
 
-    /**
-     * Build blog pagination files.
-     *
-     * @return void
-     */
-    public function build()
+    public function build(): void
     {
         $view = $this->getPostsListView();
-
         $postsPerPage = @$this->viewsData['postsPerPage'] ?: 5;
-
         $this->pagesData = array_chunk($this->viewsData['blogPosts'], $postsPerPage);
 
         foreach ($this->pagesData as $pageIndex => $posts) {
@@ -44,13 +33,7 @@ class BlogPaginationBuilder
         }
     }
 
-    /**
-     * Get the name of the view to be used for pages.
-     *
-     * @return mixed
-     * @throws \Exception
-     */
-    protected function getPostsListView()
+    protected function getPostsListView(): Traversable
     {
         if (! isset($this->viewsData['postsListView'])) {
             throw new \Exception('The postsListView config value is missing.');
@@ -63,16 +46,7 @@ class BlogPaginationBuilder
         return $this->viewsData['postsListView'];
     }
 
-    /**
-     * Build a pagination page.
-     *
-     * @param integer $pageIndex
-     * @param string $view
-     * @param array $posts
-     *
-     * @return void
-     */
-    protected function buildPage($pageIndex, $view, $posts)
+    protected function buildPage(int $pageIndex, string $view, array $posts): void
     {
         $viewData = array_merge(
             $this->viewsData,
@@ -95,14 +69,7 @@ class BlogPaginationBuilder
         );
     }
 
-    /**
-     * Get the link of the page before the given page.
-     *
-     * @param integer $currentPageIndex
-     *
-     * @return null|string
-     */
-    protected function getPreviousPageLink($currentPageIndex)
+    protected function getPreviousPageLink(int $currentPageIndex): ?string
     {
         if (! isset($this->pagesData[$currentPageIndex - 1])) {
             return null;
@@ -115,14 +82,7 @@ class BlogPaginationBuilder
         return '/blog-page/'.$currentPageIndex.'/';
     }
 
-    /**
-     * Get the link of the page after the given page.
-     *
-     * @param integer $currentPageIndex
-     *
-     * @return null|string
-     */
-    protected function getNextPageLink($currentPageIndex)
+    protected function getNextPageLink($currentPageIndex): ?string
     {
         if (! isset($this->pagesData[$currentPageIndex + 1])) {
             return null;
@@ -131,12 +91,7 @@ class BlogPaginationBuilder
         return '/blog-page/'.($currentPageIndex + 2).'/';
     }
 
-    /**
-     * Get the URL path to the blog list page.
-     *
-     * @return string
-     */
-    protected function getBlogListPagePath()
+    protected function getBlogListPagePath(): string
     {
         $path = str_replace('.', '/', $this->viewsData['postsListView']);
 

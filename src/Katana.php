@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana;
 
 use Illuminate\Events\Dispatcher;
@@ -13,51 +15,21 @@ use Katana\Commands\BuildCommand;
 use Katana\Commands\PostCommand;
 use Symfony\Component\Console\Application as SymfonyConsole;
 
-class Katana
+final class Katana
 {
-    /**
-     * The Symfony console instance.
-     *
-     * @var SymfonyConsole
-     */
-    protected $application;
+    protected Factory $viewFactory;
+    protected Filesystem $filesystem;
+    protected SymfonyConsole $application;
 
-    /**
-     * The view factory instance.
-     *
-     * @var Factory
-     */
-    protected $viewFactory;
-
-    /**
-     * The file system instance.
-     *
-     * @var Filesystem
-     */
-    protected $filesystem;
-
-    /**
-     * Katana constructor.
-     *
-     * @param SymfonyConsole $application
-     */
     public function __construct(SymfonyConsole $application)
     {
         $this->registerConstants();
-
         $this->application = $application;
-
         $this->filesystem = new Filesystem();
-
         $this->viewFactory = $this->createViewFactory();
     }
 
-    /**
-     * Register global constants.
-     *
-     * @return void
-     */
-    protected function registerConstants()
+    protected function registerConstants(): void
     {
         // A place to save Blade's cached compilations.
         define('KATANA_CACHE_DIR', getcwd() . '/_cache');
@@ -69,15 +41,9 @@ class Katana
         define('KATANA_PUBLIC_DIR', getcwd() . '/public');
     }
 
-    /**
-     * Create the view factory with a Blade Compiler.
-     *
-     * @return Factory
-     */
-    protected function createViewFactory()
+    protected function createViewFactory(): Factory
     {
         $resolver = new EngineResolver();
-
         $bladeCompiler = $this->createBladeCompiler();
 
         $resolver->register('blade', function () use ($bladeCompiler) {
@@ -102,12 +68,7 @@ class Katana
         );
     }
 
-    /**
-     * Create the Blade Compiler instance.
-     *
-     * @return BladeCompiler
-     */
-    protected function createBladeCompiler()
+    protected function createBladeCompiler(): BladeCompiler
     {
         if (!$this->filesystem->isDirectory(KATANA_CACHE_DIR)) {
             $this->filesystem->makeDirectory(KATANA_CACHE_DIR);
@@ -120,24 +81,13 @@ class Katana
         return $blade->getCompiler();
     }
 
-    /**
-     * Handle incoming console requests.
-     *
-     * @return void
-     */
-    public function handle()
+    public function handle(): void
     {
         $this->registerCommands();
-
         $this->application->run();
     }
 
-    /**
-     * Register application commands.
-     *
-     * @return void
-     */
-    protected function registerCommands()
+    protected function registerCommands(): void
     {
         $this->application->addCommands([
             new BuildCommand($this->viewFactory, $this->filesystem),

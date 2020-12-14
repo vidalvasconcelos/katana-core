@@ -1,75 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana;
 
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Finder\SplFileInfo;
-use Katana\FileHandlers\BlogPostHandler;
 use Illuminate\Filesystem\Filesystem;
-use Katana\FileHandlers\BaseHandler;
-use Illuminate\View\Factory;
-use Illuminate\Support\Str;
 
-class PostBuilder
+final class PostBuilder
 {
-    /**
-     * The title instance.
-     *
-     * @var Filesystem
-     */
-    private $title;
+    private string $title;
+    private ?string $template;
+    private Filesystem $filesystem;
 
-    /**
-     * The template instance.
-     *
-     * @var Filesystem
-     */
-    private $template;
-
-    /**
-     * The FileSystem instance.
-     *
-     * @var Filesystem
-     */
-    private $filesystem;
-
-    /**
-     * PostBuilder constructor.
-     *
-     * @param Filesystem $filesystem
-     * @param string $environment
-     */
-    public function __construct(Filesystem $filesystem, string $title, string $template = null)
+    public function __construct(Filesystem $filesystem, string $title, ?string $template)
     {
         $this->filesystem = $filesystem;
-
         $this->title = $title;
-
         $this->template = $template;
     }
 
-    /**
-     * Build the template view post.
-     *
-     * @return void
-     */
-    public function build()
+    public function build(): void
     {
         $this->filesystem->put(
-
             sprintf('/%s/_blog/%s', KATANA_CONTENT_DIR, $this->nameFile()),
-
             $this->buildTemplate()
-
         );
     }
 
-    /**
-     * Return the default template of the new post
-     *
-     * @return string
-     */
-    public function buildTemplate()
+    public function nameFile(): string
+    {
+        $slug = strtolower(trim($this->title));
+        $slug = preg_replace('/[^a-z0-9-]/', '-', $slug);
+        $slug = preg_replace('/-+/', "-", $slug);
+        $extension = ($this->template) ? "md" : "blade.php";
+
+        return sprintf('%s-%s-.%s', date('Y-m-d'), $slug, $extension);
+    }
+
+    public function buildTemplate(): string
     {
         return ($this->template) ?
             "---
@@ -94,23 +62,4 @@ class PostBuilder
                 \r\t@endmarkdown
             \r@stop";
     }
-
-    /**
-     * Return the name file of the post
-     *
-     * @return string
-     */
-    public function nameFile()
-    {
-        $slug = strtolower(trim($this->title));
-
-        $slug = preg_replace('/[^a-z0-9-]/', '-', $slug);
-
-        $slug = preg_replace('/-+/', "-", $slug);
-
-        $extension = ($this->template) ? "md" : "blade.php";
-
-        return sprintf('%s-%s-.%s', date('Y-m-d'), $slug, $extension);
-    }
-
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana\FileHandlers;
 
 use Katana\Markdown;
@@ -8,14 +10,7 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class BlogPostHandler extends BaseHandler
 {
-    /**
-     * Get the blog post data.
-     *
-     * @param SplFileInfo $file
-     *
-     * @return stdClass
-     */
-    public function getPostData(SplFileInfo $file)
+    public function getPostData(SplFileInfo $file): stdClass
     {
         $this->file = $file;
 
@@ -48,12 +43,7 @@ class BlogPostHandler extends BaseHandler
         return json_decode(json_encode($postData), false);
     }
 
-    /**
-     * Generate directory path to be used for pretty URLs.
-     *
-     * @return string
-     */
-    protected function getDirectoryPrettyName()
+    protected function getDirectoryPrettyName(): string
     {
         $pathName = $this->normalizePath($this->file->getPathname());
 

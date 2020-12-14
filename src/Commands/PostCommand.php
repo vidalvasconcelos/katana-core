@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana\Commands;
 
 use Illuminate\Filesystem\Filesystem;
@@ -11,43 +13,19 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PostCommand extends Command
+final class PostCommand extends Command
 {
-    /**
-     * The FileSystem instance.
-     *
-     * @var Filesystem
-     */
-    private $filesystem;
+    private Factory $viewFactory;
+    private Filesystem $filesystem;
 
-    /**
-     * The FileSystem instance.
-     *
-     * @var Factory
-     */
-    private $viewFactory;
-
-    /**
-     * PostCommand constructor.
-     *
-     * @param Factory $viewFactory
-     * @param Filesystem $filesystem
-     */
     public function __construct(Factory $viewFactory, Filesystem $filesystem)
     {
         $this->filesystem = $filesystem;
-
         $this->viewFactory = $viewFactory;
-
         parent::__construct();
     }
 
-    /**
-     * Configure the command.
-     *
-     * @return void
-     */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('post')
             ->setDescription('Generate a blog post.')
@@ -55,15 +33,7 @@ class PostCommand extends Command
             ->addOption('m', null, InputOption::VALUE_NONE, 'Create a Markdown template file');
     }
 
-    /**
-     * Execute the command.
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return void
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         $post = new PostBuilder(
             $this->filesystem,
@@ -72,10 +42,9 @@ class PostCommand extends Command
         );
 
         $post->build();
-
-        $output->writeln(
-
-            sprintf("<info>Post \"%s\" was generated successfully.</info>", $input->getArgument('title'))
-        );
+        $output->writeln(sprintf(
+            "<info>Post \"%s\" was generated successfully.</info>",
+            $input->getArgument('title')
+        ));
     }
 }

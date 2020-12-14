@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana;
 
 use Illuminate\Contracts\Support\Renderable;
@@ -9,54 +11,18 @@ use Illuminate\View\Engines\PhpEngine;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
 
-class MarkdownFileBuilder
+final class MarkdownFileBuilder
 {
-    protected $filesystem;
-    protected $viewFactory;
-    protected $file;
-    protected $data;
+    protected array $data;
+    protected array $fileYAML;
+    protected string $cached;
+    protected string $fileContent;
+    protected Factory $viewFactory;
+    protected Filesystem $filesystem;
+    protected BladeCompiler $bladeCompiler;
+    protected SplFileInfo $file;
+    protected PhpEngine $engine;
 
-    /**
-     * The body of the file.
-     *
-     * @var string
-     */
-    protected $fileContent;
-
-    /**
-     * The YAML meta of the file.
-     *
-     * @var array
-     */
-    protected $fileYAML;
-
-    /**
-     * The BladeCompiler instance.
-     *
-     * @var BladeCompiler
-     */
-    protected $bladeCompiler;
-
-    /**
-     * The CompilerEngine instance.
-     *
-     * @var PhpEngine
-     */
-    protected $engine;
-
-    /**
-     * The path to the cached compilation.
-     *
-     * @var string
-     */
-    protected $cached;
-
-    /**
-     * MarkdownFileBuilder constructor.
-     *
-     * @param Filesystem $filesystem
-     * @param Factory $viewFactory
-     */
     public function __construct(Filesystem $filesystem, Factory $viewFactory, SplFileInfo $file, array $data)
     {
         $this->filesystem = $filesystem;
@@ -67,20 +33,13 @@ class MarkdownFileBuilder
         $parsed = Markdown::parseWithYAML($this->file->getContents());
 
         $this->fileContent = $parsed[0];
-
         $this->fileYAML = $parsed[1];
-
-        $this->cached = KATANA_CACHE_DIR.'/'.sha1($this->file->getRelativePathname()).'.php';
-
+        $this->cached = KATANA_CACHE_DIR . '/' . sha1($this->file->getRelativePathname()) . '.php';
         $this->bladeCompiler = $this->getBladeCompiler();
-
         $this->engine = $this->getEngine();
     }
 
-    /**
-     * Get the evaluated contents of the file.
-     */
-    public function render()
+    public function render(): string
     {
         $viewContent = $this->buildBladeViewContent();
 
@@ -93,17 +52,12 @@ class MarkdownFileBuilder
         return $this->engine->get($this->cached, $data);
     }
 
-    /**
-     * Build the content of the imaginary blade view.
-     *
-     * @return string
-     */
-    protected function buildBladeViewContent()
+    protected function buildBladeViewContent(): string
     {
         $sections = '';
 
         foreach ($this->fileYAML as $name => $value) {
-            $sections .= "@section('$name', '".addslashes($value)."')\n\r";
+            $sections .= "@section('$name', '" . addslashes($value) . "')\n\r";
         }
 
         return
@@ -114,32 +68,17 @@ class MarkdownFileBuilder
             @stop";
     }
 
-    /**
-     * Return the BladeCompiler from the view factory.
-     *
-     * @return BladeCompiler
-     */
-    protected function getBladeCompiler()
+    protected function getBladeCompiler(): BladeCompiler
     {
         return $this->viewFactory->getEngineResolver()->resolve('blade')->getCompiler();
     }
 
-    /**
-     * Return the PhpEngine.
-     *
-     * @return PhpEngine
-     */
-    protected function getEngine()
+    protected function getEngine(): PhpEngine
     {
         return new PhpEngine;
     }
 
-    /**
-     * Get variables to be passed to the view.
-     *
-     * @return array
-     */
-    protected function getViewData()
+    protected function getViewData(): array
     {
         $data = array_merge($this->viewFactory->getShared(), $this->data);
 
@@ -152,14 +91,9 @@ class MarkdownFileBuilder
         return $data;
     }
 
-    /**
-     * Determine if the view at the given path is expired.
-     *
-     * @return bool
-     */
-    protected function isExpired()
+    protected function isExpired(): bool
     {
-        if (! $this->filesystem->exists($this->cached)) {
+        if (!$this->filesystem->exists($this->cached)) {
             return true;
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana\Commands;
 
 use Illuminate\Filesystem\Filesystem;
@@ -10,43 +12,19 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class BuildCommand extends Command
+final class BuildCommand extends Command
 {
-    /**
-     * The FileSystem instance.
-     *
-     * @var Filesystem
-     */
-    protected $filesystem;
+    protected Factory $viewFactory;
+    protected Filesystem $filesystem;
 
-    /**
-     * The view factory instance.
-     *
-     * @var Factory
-     */
-    protected $viewFactory;
-
-    /**
-     * BuildCommand constructor.
-     *
-     * @param Factory $viewFactory
-     * @param Filesystem $filesystem
-     */
     public function __construct(Factory $viewFactory, Filesystem $filesystem)
     {
         $this->filesystem = $filesystem;
-
         $this->viewFactory = $viewFactory;
-
         parent::__construct();
     }
 
-    /**
-     * Configure the command.
-     *
-     * @return void
-     */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('build')
             ->setDescription('Generate the site static files.')
@@ -54,15 +32,7 @@ class BuildCommand extends Command
             ->addOption('force', null, InputOption::VALUE_NONE, 'Clear the cache before building.');
     }
 
-    /**
-     * Execute the command.
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return void
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         $siteBuilder = new SiteBuilder(
             $this->filesystem,

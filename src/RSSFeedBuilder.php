@@ -1,23 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Katana;
 
+use Exception;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
 
-class RSSFeedBuilder
+final class RSSFeedBuilder
 {
-    protected $filesystem;
-    protected $viewFactory;
-    protected $viewsData;
+    protected array $viewsData = [];
+    protected Factory $viewFactory;
+    protected Filesystem $filesystem;
 
-    /**
-     * RSSFeedBuilder constructor.
-     *
-     * @param Filesystem $filesystem
-     * @param Factory $viewFactory
-     * @param array $viewsData
-     */
     public function __construct(Filesystem $filesystem, Factory $viewFactory, array $viewsData)
     {
         $this->filesystem = $filesystem;
@@ -25,14 +21,9 @@ class RSSFeedBuilder
         $this->viewsData = $viewsData;
     }
 
-    /**
-     * Build blog RSS feed file.
-     *
-     * @return void
-     */
-    public function build()
+    public function build(): void
     {
-        if (! $view = $this->getRSSView()) {
+        if (!$view = $this->getRSSView()) {
             return;
         }
 
@@ -44,20 +35,14 @@ class RSSFeedBuilder
         );
     }
 
-    /**
-     * Get the name of the view to be used for generating the RSS feed.
-     *
-     * @return mixed
-     * @throws \Exception
-     */
-    protected function getRSSView()
+    protected function getRSSView(): ?array
     {
-        if (! isset($this->viewsData['rssFeedView']) || ! @$this->viewsData['rssFeedView']) {
+        if (!isset($this->viewsData['rssFeedView']) || !@$this->viewsData['rssFeedView']) {
             return null;
         }
 
-        if (! $this->viewFactory->exists($this->viewsData['rssFeedView'])) {
-            throw new \Exception(sprintf('The "%s" view is not found. Make sure the rssFeedView configuration key is correct.', $this->viewsData['rssFeedView']));
+        if (!$this->viewFactory->exists($this->viewsData['rssFeedView'])) {
+            throw new Exception(sprintf('The "%s" view is not found. Make sure the rssFeedView configuration key is correct.', $this->viewsData['rssFeedView']));
         }
 
         return $this->viewsData['rssFeedView'];
