@@ -15,13 +15,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class Post extends Command
 {
-    private Factory $viewFactory;
+    private Factory $factory;
     private Filesystem $filesystem;
 
-    public function __construct(Factory $viewFactory, Filesystem $filesystem)
+    public function __construct(Factory $factory, Filesystem $filesystem)
     {
         $this->filesystem = $filesystem;
-        $this->viewFactory = $viewFactory;
+        $this->factory = $factory;
         parent::__construct();
     }
 

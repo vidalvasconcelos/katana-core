@@ -14,13 +14,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class Build extends Command
 {
-    protected Factory $viewFactory;
+    protected Factory $factory;
     protected Filesystem $filesystem;
 
-    public function __construct(Factory $viewFactory, Filesystem $filesystem)
+    public function __construct(Factory $factory, Filesystem $filesystem)
     {
         $this->filesystem = $filesystem;
-        $this->viewFactory = $viewFactory;
+        $this->factory = $factory;
         parent::__construct();
     }
 
@@ -36,7 +36,7 @@ final class Build extends Command
     {
         $siteBuilder = new Site(
             $this->filesystem,
-            $this->viewFactory,
+            $this->factory,
             $input->getOption('env'),
             $input->getOption('force')
         );

@@ -11,28 +11,28 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class BaseHandler
 {
-    public array $viewsData = [];
-    protected Factory $viewFactory;
+    public array $data = [];
+    protected Factory $factory;
     protected Filesystem $filesystem;
     protected SplFileInfo $file;
-    protected string $viewPath;
+    protected string $view;
     protected string $directory;
 
     public function __construct(Filesystem $filesystem, Factory $viewFactory)
     {
         $this->filesystem = $filesystem;
-        $this->viewFactory = $viewFactory;
+        $this->factory = $viewFactory;
     }
 
     public function handle(SplFileInfo $file): void
     {
         $this->file = $file;
-        $this->viewPath = $this->getViewPath();
+        $this->view = $this->getViewPath();
         $this->directory = $this->getDirectoryPrettyName();
         $this->appendViewInformationToData();
 
-        if (@$this->viewsData['enableBlog']
-            && @$this->viewsData['postsListView'] == $this->viewPath) {
+        if (@$this->data['enableBlog']
+            && @$this->data['postsListView'] == $this->view) {
             $this->prepareBlogIndexViewData();
         }
 
@@ -80,18 +80,17 @@ class BaseHandler
 
     protected function appendViewInformationToData(): void
     {
-        $this->viewsData['currentViewPath'] = $this->viewPath;
-
-        $this->viewsData['currentUrlPath'] = ($path = str_replace(KATANA_PUBLIC_DIR, '', $this->directory)) ? $path : '/';
+        $this->data['currentViewPath'] = $this->view;
+        $this->data['currentUrlPath'] = ($path = str_replace(KATANA_PUBLIC_DIR, '', $this->directory)) ? $path : '/';
     }
 
     protected function prepareBlogIndexViewData(): void
     {
-        $postsPerPage = @$this->viewsData['postsPerPage'] ?: 5;
+        $postsPerPage = @$this->data['postsPerPage'] ?: 5;
 
-        $this->viewsData['nextPage'] = count($this->viewsData['blogPosts']) > $postsPerPage ? '/blog-page/2' : null;
-        $this->viewsData['previousPage'] = null;
-        $this->viewsData['paginatedBlogPosts'] = array_slice($this->viewsData['blogPosts'], 0, $postsPerPage, true);
+        $this->data['nextPage'] = count($this->data['blogPosts']) > $postsPerPage ? '/blog-page/2' : null;
+        $this->data['previousPage'] = null;
+        $this->data['paginatedBlogPosts'] = array_slice($this->data['blogPosts'], 0, $postsPerPage, true);
     }
 
     protected function getFileContent(): string
@@ -109,9 +108,9 @@ class BaseHandler
 
     protected function renderBlade(): string
     {
-        return $this->viewFactory->make(
-            $this->viewPath,
-            $this->viewsData
+        return $this->factory->make(
+            $this->view,
+            $this->data
         )->render();
     }
 
@@ -119,9 +118,9 @@ class BaseHandler
     {
         $markdownFileBuilder = new MarkdownFile(
             $this->filesystem,
-            $this->viewFactory,
+            $this->factory,
             $this->file,
-            $this->viewsData
+            $this->data
         );
 
         return $markdownFileBuilder->render();

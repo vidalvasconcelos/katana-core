@@ -10,15 +10,15 @@ use Illuminate\View\Factory;
 
 final class RSSFeed
 {
-    protected array $viewsData = [];
-    protected Factory $viewFactory;
+    protected array $data = [];
+    protected Factory $factory;
     protected Filesystem $filesystem;
 
-    public function __construct(Filesystem $filesystem, Factory $viewFactory, array $viewsData)
+    public function __construct(Filesystem $filesystem, Factory $factory, array $data)
     {
         $this->filesystem = $filesystem;
-        $this->viewFactory = $viewFactory;
-        $this->viewsData = $viewsData;
+        $this->factory = $factory;
+        $this->data = $data;
     }
 
     public function build(): void
@@ -27,7 +27,7 @@ final class RSSFeed
             return;
         }
 
-        $pageContent = $this->viewFactory->make($view, $this->viewsData)->render();
+        $pageContent = $this->factory->make($view, $this->data)->render();
 
         $this->filesystem->put(
             sprintf('%s/%s', KATANA_PUBLIC_DIR, 'feed.rss'),
@@ -35,16 +35,16 @@ final class RSSFeed
         );
     }
 
-    protected function getRSSView(): ?array
+    protected function getRSSView(): ?string
     {
-        if (!isset($this->viewsData['rssFeedView']) || !@$this->viewsData['rssFeedView']) {
+        if (!isset($this->data['rssFeedView']) || !@$this->data['rssFeedView']) {
             return null;
         }
 
-        if (!$this->viewFactory->exists($this->viewsData['rssFeedView'])) {
-            throw new Exception(sprintf('The "%s" view is not found. Make sure the rssFeedView configuration key is correct.', $this->viewsData['rssFeedView']));
+        if (!$this->factory->exists($this->data['rssFeedView'])) {
+            throw new Exception(sprintf('The "%s" view is not found. Make sure the rssFeedView configuration key is correct.', $this->data['rssFeedView']));
         }
 
-        return $this->viewsData['rssFeedView'];
+        return $this->data['rssFeedView'];
     }
 }

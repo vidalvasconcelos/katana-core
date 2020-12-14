@@ -18,16 +18,16 @@ final class MarkdownFile
     protected array $fileYAML;
     protected string $cached;
     protected string $fileContent;
-    protected Factory $viewFactory;
+    protected Factory $factory;
     protected Filesystem $filesystem;
     protected BladeCompiler $bladeCompiler;
     protected SplFileInfo $file;
     protected PhpEngine $engine;
 
-    public function __construct(Filesystem $filesystem, Factory $viewFactory, SplFileInfo $file, array $data)
+    public function __construct(Filesystem $filesystem, Factory $factory, SplFileInfo $file, array $data)
     {
         $this->filesystem = $filesystem;
-        $this->viewFactory = $viewFactory;
+        $this->factory = $factory;
         $this->file = $file;
         $this->data = $data;
 
@@ -71,7 +71,7 @@ final class MarkdownFile
 
     protected function getBladeCompiler(): BladeCompiler
     {
-        return $this->viewFactory->getEngineResolver()->resolve('blade')->getCompiler();
+        return $this->factory->getEngineResolver()->resolve('blade')->getCompiler();
     }
 
     protected function getEngine(): PhpEngine
@@ -81,7 +81,7 @@ final class MarkdownFile
 
     protected function getViewData(): array
     {
-        $data = array_merge($this->viewFactory->getShared(), $this->data);
+        $data = array_merge($this->factory->getShared(), $this->data);
 
         foreach ($data as $key => $value) {
             if ($value instanceof Renderable) {

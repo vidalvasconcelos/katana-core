@@ -17,7 +17,7 @@ final class BlogPostHandler extends BaseHandler
         if ($this->file->getExtension() == 'md') {
             $postData = Markdown::parseWithYAML($this->file->getContents())[1];
         } else {
-            $view = $this->viewFactory->make(str_replace('.blade.php', '', $this->file->getRelativePathname()));
+            $view = $this->factory->make(str_replace('.blade.php', '', $this->file->getRelativePathname()));
 
             $postData = [];
 

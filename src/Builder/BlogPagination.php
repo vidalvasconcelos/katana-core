@@ -6,50 +6,49 @@ namespace Katana\Builder;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
-use Traversable;
 
 final class BlogPagination
 {
-    protected array $viewsData;
+    protected array $data;
     protected array $pagesData;
-    protected Factory $viewFactory;
+    protected Factory $factory;
     protected Filesystem $filesystem;
 
-    public function __construct(Filesystem $filesystem, Factory $viewFactory, array $viewsData)
+    public function __construct(Filesystem $filesystem, Factory $factory, array $data)
     {
         $this->filesystem = $filesystem;
-        $this->viewFactory = $viewFactory;
-        $this->viewsData = $viewsData;
+        $this->factory = $factory;
+        $this->data = $data;
     }
 
     public function build(): void
     {
         $view = $this->getPostsListView();
-        $postsPerPage = @$this->viewsData['postsPerPage'] ?: 5;
-        $this->pagesData = array_chunk($this->viewsData['blogPosts'], $postsPerPage);
+        $postsPerPage = @$this->data['postsPerPage'] ?: 5;
+        $this->pagesData = array_chunk($this->data['blogPosts'], $postsPerPage);
 
         foreach ($this->pagesData as $pageIndex => $posts) {
             $this->buildPage($pageIndex, $view, $posts);
         }
     }
 
-    protected function getPostsListView(): Traversable
+    protected function getPostsListView(): string
     {
-        if (! isset($this->viewsData['postsListView'])) {
+        if (! isset($this->data['postsListView'])) {
             throw new \Exception('The postsListView config value is missing.');
         }
 
-        if (! $this->viewFactory->exists($this->viewsData['postsListView'])) {
-            throw new \Exception(sprintf('The "%s" view is not found. Make sure the postsListView configuration key is correct.', $this->viewsData['postsListView']));
+        if (! $this->factory->exists($this->data['postsListView'])) {
+            throw new \Exception(sprintf('The "%s" view is not found. Make sure the postsListView configuration key is correct.', $this->data['postsListView']));
         }
 
-        return $this->viewsData['postsListView'];
+        return $this->data['postsListView'];
     }
 
     protected function buildPage(int $pageIndex, string $view, array $posts): void
     {
         $viewData = array_merge(
-            $this->viewsData,
+            $this->data,
             [
                 'paginatedBlogPosts' => $posts,
                 'previousPage' => $this->getPreviousPageLink($pageIndex),
@@ -57,7 +56,7 @@ final class BlogPagination
             ]
         );
 
-        $pageContent = $this->viewFactory->make($view, $viewData)->render();
+        $pageContent = $this->factory->make($view, $viewData)->render();
 
         $directory = sprintf('%s/blog-page/%d', KATANA_PUBLIC_DIR, $pageIndex + 1);
 
@@ -93,7 +92,7 @@ final class BlogPagination
 
     protected function getBlogListPagePath(): string
     {
-        $path = str_replace('.', '/', $this->viewsData['postsListView']);
+        $path = str_replace('.', '/', $this->data['postsListView']);
 
         if (ends_with($path, 'index')) {
             return rtrim($path, '/index');

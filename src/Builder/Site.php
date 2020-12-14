@@ -11,25 +11,25 @@ use Symfony\Component\Finder\SplFileInfo;
 
 final class Site
 {
+    protected array $data;
+    protected array $posts;
     protected array $configs;
-    protected array $postsData;
-    protected array $viewsData;
     protected string $environment;
     protected string $blogDirectory = '_blog';
     protected string $includesDirectory = '_includes';
-    protected Factory $viewFactory;
+    protected Factory $factory;
     protected Filesystem $filesystem;
     protected BaseHandler $fileHandler;
     protected BlogPostHandler $blogPostHandler;
     protected bool $forceBuild = false;
 
-    public function __construct(Filesystem $filesystem, Factory $viewFactory, $environment, $forceBuild = false)
+    public function __construct(Filesystem $filesystem, Factory $factory, string $environment, bool $forceBuild = false)
     {
         $this->filesystem = $filesystem;
-        $this->viewFactory = $viewFactory;
+        $this->factory = $factory;
         $this->environment = $environment;
-        $this->fileHandler = new BaseHandler($filesystem, $viewFactory);
-        $this->blogPostHandler = new BlogPostHandler($filesystem, $viewFactory);
+        $this->fileHandler = new BaseHandler($filesystem, $factory);
+        $this->blogPostHandler = new BlogPostHandler($filesystem, $factory);
         $this->forceBuild = $forceBuild;
     }
 
@@ -118,15 +118,15 @@ final class Site
     protected function readBlogPostsData(array $files): void
     {
         foreach ($files as $file) {
-            $this->postsData[] = $this->blogPostHandler->getPostData($file);
+            $this->posts[] = $this->blogPostHandler->getPostData($file);
         }
     }
 
     protected function buildViewsData(): void
     {
-        $this->viewsData = $this->configs + ['blogPosts' => array_reverse((array)$this->postsData)];
-        $this->fileHandler->viewsData = $this->viewsData;
-        $this->blogPostHandler->viewsData = $this->viewsData;
+        $this->data = $this->configs + ['blogPosts' => array_reverse((array)$this->posts)];
+        $this->fileHandler->data = $this->data;
+        $this->blogPostHandler->data = $this->data;
     }
 
     protected function handleSiteFiles(array $files): void
@@ -147,8 +147,8 @@ final class Site
     {
         $builder = new BlogPagination(
             $this->filesystem,
-            $this->viewFactory,
-            $this->viewsData
+            $this->factory,
+            $this->data
         );
 
         $builder->build();
@@ -158,8 +158,8 @@ final class Site
     {
         $builder = new RSSFeed(
             $this->filesystem,
-            $this->viewFactory,
-            $this->viewsData
+            $this->factory,
+            $this->data
         );
 
         $builder->build();

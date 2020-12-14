@@ -8,29 +8,29 @@ use Illuminate\View\Compilers\BladeCompiler;
 
 final class Blade
 {
-    protected BladeCompiler $bladeCompiler;
+    protected BladeCompiler $compiler;
 
-    public function __construct(BladeCompiler $bladeCompiler)
+    public function __construct(BladeCompiler $compiler)
     {
-        $this->bladeCompiler = $bladeCompiler;
+        $this->compiler = $compiler;
         $this->registerMarkdownDirective();
         $this->registerURLDirective();
     }
 
     protected function registerMarkdownDirective(): void
     {
-        $this->bladeCompiler->directive('markdown', function () {
+        $this->compiler->directive('markdown', function () {
             return "<?php echo \\Katana\\Markdown::parse(<<<'EOT'";
         });
 
-        $this->bladeCompiler->directive('endmarkdown', function () {
+        $this->compiler->directive('endmarkdown', function () {
             return "\nEOT\n); ?>";
         });
     }
 
     protected function registerURLDirective(): void
     {
-        $this->bladeCompiler->directive('url', function ($expression) {
+        $this->compiler->directive('url', function ($expression) {
             $expression = substr($expression, 1, -1);
             $trailingSlash = !str_contains($expression, '.') ? '/' : '';
 
@@ -40,6 +40,6 @@ final class Blade
 
     public function getCompiler(): BladeCompiler
     {
-        return $this->bladeCompiler;
+        return $this->compiler;
     }
 }

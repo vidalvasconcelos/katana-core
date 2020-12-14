@@ -13,20 +13,20 @@ use Illuminate\View\Factory;
 use Illuminate\View\FileViewFinder;
 use Katana\Command\Build;
 use Katana\Command\Post;
-use Symfony\Component\Console\Application as SymfonyConsole;
+use Symfony\Component\Console\Application;
 
 final class Katana
 {
-    protected Factory $viewFactory;
+    protected Factory $factory;
     protected Filesystem $filesystem;
-    protected SymfonyConsole $application;
+    protected Application $application;
 
-    public function __construct(SymfonyConsole $application)
+    public function __construct(Application $application)
     {
         $this->registerConstants();
         $this->application = $application;
         $this->filesystem = new Filesystem();
-        $this->viewFactory = $this->createViewFactory();
+        $this->factory = $this->createViewFactory();
     }
 
     protected function registerConstants(): void
@@ -90,8 +90,8 @@ final class Katana
     protected function registerCommands(): void
     {
         $this->application->addCommands([
-            new Build($this->viewFactory, $this->filesystem),
-            new Post($this->viewFactory, $this->filesystem)
+            new Build($this->factory, $this->filesystem),
+            new Post($this->factory, $this->filesystem)
         ]);
     }
 }
