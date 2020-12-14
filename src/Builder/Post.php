@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Katana;
+namespace Katana\Builder;
 
 use Illuminate\Filesystem\Filesystem;
 
-final class PostBuilder
+final class Post
 {
     private string $title;
     private ?string $template;

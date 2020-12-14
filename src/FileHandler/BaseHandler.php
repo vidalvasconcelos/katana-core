@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Katana\FileHandlers;
+namespace Katana\FileHandler;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
-use Katana\MarkdownFileBuilder;
+use Katana\Builder\MarkdownFile;
 use Symfony\Component\Finder\SplFileInfo;
 
 class BaseHandler
@@ -117,7 +117,7 @@ class BaseHandler
 
     protected function renderMarkdown(): string
     {
-        $markdownFileBuilder = new MarkdownFileBuilder(
+        $markdownFileBuilder = new MarkdownFile(
             $this->filesystem,
             $this->viewFactory,
             $this->file,

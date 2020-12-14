@@ -11,8 +11,8 @@ use Illuminate\View\Engines\CompilerEngine;
 use Illuminate\View\Engines\EngineResolver;
 use Illuminate\View\Factory;
 use Illuminate\View\FileViewFinder;
-use Katana\Commands\BuildCommand;
-use Katana\Commands\PostCommand;
+use Katana\Command\Build;
+use Katana\Command\Post;
 use Symfony\Component\Console\Application as SymfonyConsole;
 
 final class Katana
@@ -90,8 +90,8 @@ final class Katana
     protected function registerCommands(): void
     {
         $this->application->addCommands([
-            new BuildCommand($this->viewFactory, $this->filesystem),
-            new PostCommand($this->viewFactory, $this->filesystem)
+            new Build($this->viewFactory, $this->filesystem),
+            new Post($this->viewFactory, $this->filesystem)
         ]);
     }
 }

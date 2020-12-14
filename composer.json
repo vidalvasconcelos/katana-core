@@ -11,6 +11,7 @@
   ],
   "require": {
     "php": ">=7.4",
+    "ext-json": "*",
     "symfony/console": "2.6.7",
     "illuminate/view": "5.2.*",
     "erusev/parsedown": "^1.6",

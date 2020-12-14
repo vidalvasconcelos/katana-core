@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Katana;
+namespace Katana\Builder;
 
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\View\Compilers\BladeCompiler;
-use Symfony\Component\Finder\SplFileInfo;
-use Illuminate\View\Engines\PhpEngine;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\View\Compilers\BladeCompiler;
+use Illuminate\View\Engines\PhpEngine;
 use Illuminate\View\Factory;
+use Katana\Markdown;
+use Symfony\Component\Finder\SplFileInfo;
 
-final class MarkdownFileBuilder
+final class MarkdownFile
 {
     protected array $data;
     protected array $fileYAML;

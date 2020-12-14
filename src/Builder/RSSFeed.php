@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Katana;
+namespace Katana\Builder;
 
 use Exception;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
 
-final class RSSFeedBuilder
+final class RSSFeed
 {
     protected array $viewsData = [];
     protected Factory $viewFactory;

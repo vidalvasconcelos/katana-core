@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Katana\FileHandlers;
+namespace Katana\FileHandler;
 
 use Katana\Markdown;
 use stdClass;
 use Symfony\Component\Finder\SplFileInfo;
 
-class BlogPostHandler extends BaseHandler
+final class BlogPostHandler extends BaseHandler
 {
     public function getPostData(SplFileInfo $file): stdClass
     {
@@ -61,25 +61,12 @@ class BlogPostHandler extends BaseHandler
         return KATANA_PUBLIC_DIR . "/$fileRelativePath";
     }
 
-    /**
-     * Check if file is inside the blog directory.
-     *
-     * @param $pathName
-     * @return bool
-     */
-    protected function isInsideBlogDirectory($pathName)
+    protected function isInsideBlogDirectory(string $pathName): bool
     {
         return str_is('*/_blog/*/*', $pathName);
     }
 
-    /**
-     * Generate blog post slug.
-     *
-     * @param string $fileBaseName
-     *
-     * @return string
-     */
-    protected function getBlogPostSlug($fileBaseName)
+    protected function getBlogPostSlug(string $fileBaseName): string
     {
         preg_match('/^(\d{4}-\d{2}-\d{2})-(.*)/', $fileBaseName, $matches);
 

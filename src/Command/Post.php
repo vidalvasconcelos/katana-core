@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Katana\Commands;
+namespace Katana\Command;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
-use Katana\PostBuilder;
+use Katana\Builder\Post as Builder;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class PostCommand extends Command
+final class Post extends Command
 {
     private Factory $viewFactory;
     private Filesystem $filesystem;
@@ -35,7 +35,7 @@ final class PostCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
-        $post = new PostBuilder(
+        $post = new Builder(
             $this->filesystem,
             $input->getArgument('title'),
             $input->getOption('m')

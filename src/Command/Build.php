@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Katana\Commands;
+namespace Katana\Command;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
-use Katana\SiteBuilder;
+use Katana\Builder\Site;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class BuildCommand extends Command
+final class Build extends Command
 {
     protected Factory $viewFactory;
     protected Filesystem $filesystem;
@@ -34,7 +34,7 @@ final class BuildCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
-        $siteBuilder = new SiteBuilder(
+        $siteBuilder = new Site(
             $this->filesystem,
             $this->viewFactory,
             $input->getOption('env'),

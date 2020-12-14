@@ -1,15 +1,15 @@
 <?php
 
-namespace Katana;
+namespace Katana\Builder;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
 use Illuminate\View\Factory;
-use Katana\FileHandlers\BaseHandler;
-use Katana\FileHandlers\BlogPostHandler;
+use Katana\FileHandler\BaseHandler;
+use Katana\FileHandler\BlogPostHandler;
 use Symfony\Component\Finder\SplFileInfo;
 
-final class SiteBuilder
+final class Site
 {
     protected array $configs;
     protected array $postsData;
@@ -145,7 +145,7 @@ final class SiteBuilder
 
     protected function buildBlogPagination(): void
     {
-        $builder = new BlogPaginationBuilder(
+        $builder = new BlogPagination(
             $this->filesystem,
             $this->viewFactory,
             $this->viewsData
@@ -156,7 +156,7 @@ final class SiteBuilder
 
     protected function buildRSSFeed(): void
     {
-        $builder = new RSSFeedBuilder(
+        $builder = new RSSFeed(
             $this->filesystem,
             $this->viewFactory,
             $this->viewsData

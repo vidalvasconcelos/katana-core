@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Katana;
+namespace Katana\Builder;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
 use Traversable;
 
-final class BlogPaginationBuilder
+final class BlogPagination
 {
     protected array $viewsData;
     protected array $pagesData;
