@@ -2,8 +2,9 @@
 
 namespace Katana\FileHandlers;
 
-use Symfony\Component\Finder\SplFileInfo;
 use Katana\Markdown;
+use stdClass;
+use Symfony\Component\Finder\SplFileInfo;
 
 class BlogPostHandler extends BaseHandler
 {
@@ -12,7 +13,7 @@ class BlogPostHandler extends BaseHandler
      *
      * @param SplFileInfo $file
      *
-     * @return \stdClass
+     * @return stdClass
      */
     public function getPostData(SplFileInfo $file)
     {
@@ -42,7 +43,7 @@ class BlogPostHandler extends BaseHandler
             unset($postData[$key]);
         }
 
-        $postData['path'] = str_replace(KATANA_PUBLIC_DIR, '', $this->getDirectoryPrettyName()).'/';
+        $postData['path'] = str_replace(KATANA_PUBLIC_DIR, '', $this->getDirectoryPrettyName()) . '/';
 
         return json_decode(json_encode($postData), false);
     }
@@ -55,7 +56,7 @@ class BlogPostHandler extends BaseHandler
     protected function getDirectoryPrettyName()
     {
         $pathName = $this->normalizePath($this->file->getPathname());
-        
+
         // If the post is inside a child directory of the _blog directory then
         // we deal with it like regular site files and generate a nested
         // directories based post path with exact file name.
@@ -67,7 +68,7 @@ class BlogPostHandler extends BaseHandler
 
         $fileRelativePath = $this->getBlogPostSlug($fileBaseName);
 
-        return KATANA_PUBLIC_DIR."/$fileRelativePath";
+        return KATANA_PUBLIC_DIR . "/$fileRelativePath";
     }
 
     /**
@@ -92,6 +93,6 @@ class BlogPostHandler extends BaseHandler
     {
         preg_match('/^(\d{4}-\d{2}-\d{2})-(.*)/', $fileBaseName, $matches);
 
-        return $matches[2].'-'.str_replace('-', '', $matches[1]);
+        return $matches[2] . '-' . str_replace('-', '', $matches[1]);
     }
 }

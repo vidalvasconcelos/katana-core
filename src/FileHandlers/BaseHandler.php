@@ -2,43 +2,39 @@
 
 namespace Katana\FileHandlers;
 
-use Katana\MarkdownFileBuilder;
-use Symfony\Component\Finder\SplFileInfo;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
+use Katana\MarkdownFileBuilder;
+use Symfony\Component\Finder\SplFileInfo;
 
 class BaseHandler
 {
-    protected $filesystem;
-    protected $viewFactory;
-
-    /**
-     * The view file.
-     *
-     * @var SplFileInfo
-     */
-    protected $file;
-
-    /**
-     * The path to the blade view.
-     *
-     * @var string
-     */
-    protected $viewPath;
-
-    /**
-     * the path to the generated directory.
-     *
-     * @var string
-     */
-    protected $directory;
-
     /**
      * Data to be passed to every view.
      *
      * @var array
      */
     public $viewsData = [];
+    protected $filesystem;
+    protected $viewFactory;
+    /**
+     * The view file.
+     *
+     * @var SplFileInfo
+     */
+    protected $file;
+    /**
+     * The path to the blade view.
+     *
+     * @var string
+     */
+    protected $viewPath;
+    /**
+     * the path to the generated directory.
+     *
+     * @var string
+     */
+    protected $directory;
 
     /**
      * AbstractHandler constructor.
@@ -82,6 +78,86 @@ class BaseHandler
             ),
             $content
         );
+    }
+
+    /**
+     * Get the path of the view.
+     *
+     * @return string
+     */
+    protected function getViewPath()
+    {
+        return str_replace(['.blade.php', '.md'], '', $this->file->getRelativePathname());
+    }
+
+    /**
+     * Generate directory path to be used for the file pretty name.
+     *
+     * @return string
+     */
+    protected function getDirectoryPrettyName()
+    {
+        $fileBaseName = $this->getFileName();
+
+        $fileRelativePath = $this->normalizePath($this->file->getRelativePath());
+
+        if (in_array($this->file->getExtension(), ['php', 'md']) && $fileBaseName != 'index') {
+            $fileRelativePath .= $fileRelativePath ? "/$fileBaseName" : $fileBaseName;
+        }
+
+        return KATANA_PUBLIC_DIR . ($fileRelativePath ? "/$fileRelativePath" : '');
+    }
+
+    /**
+     * Get the file name without the extension.
+     *
+     * @return string
+     */
+    protected function getFileName(SplFileInfo $file = null)
+    {
+        $file = $file ?: $this->file;
+
+        return str_replace(['.blade.php', '.php', '.md'], '', $file->getBasename());
+    }
+
+    /**
+     * Normalize Windows file paths to UNIX style
+     *
+     * @return string
+     */
+    protected function normalizePath($path)
+    {
+        return str_replace("\\", '/', $path);
+    }
+
+    /**
+     * Append the view file information to the view data.
+     *
+     * @return void
+     */
+    protected function appendViewInformationToData()
+    {
+        $this->viewsData['currentViewPath'] = $this->viewPath;
+
+        $this->viewsData['currentUrlPath'] = ($path = str_replace(KATANA_PUBLIC_DIR, '', $this->directory)) ? $path : '/';
+    }
+
+    /**
+     * Prepare the data for the blog landing page.
+     *
+     * We will pass only the first n posts and a next page path.
+     *
+     * @return void
+     */
+    protected function prepareBlogIndexViewData()
+    {
+        $postsPerPage = @$this->viewsData['postsPerPage'] ?: 5;
+
+        $this->viewsData['nextPage'] = count($this->viewsData['blogPosts']) > $postsPerPage ? '/blog-page/2' : null;
+
+        $this->viewsData['previousPage'] = null;
+
+        $this->viewsData['paginatedBlogPosts'] = array_slice($this->viewsData['blogPosts'], 0, $postsPerPage, true);
     }
 
     /**
@@ -131,90 +207,10 @@ class BaseHandler
      */
     protected function prepareAndGetDirectory()
     {
-        if (! $this->filesystem->isDirectory($this->directory)) {
+        if (!$this->filesystem->isDirectory($this->directory)) {
             $this->filesystem->makeDirectory($this->directory, 0755, true);
         }
 
         return $this->directory;
-    }
-
-    /**
-     * Generate directory path to be used for the file pretty name.
-     *
-     * @return string
-     */
-    protected function getDirectoryPrettyName()
-    {
-        $fileBaseName = $this->getFileName();
-
-        $fileRelativePath = $this->normalizePath($this->file->getRelativePath());
-
-        if (in_array($this->file->getExtension(), ['php', 'md']) && $fileBaseName != 'index') {
-            $fileRelativePath .= $fileRelativePath ? "/$fileBaseName" : $fileBaseName;
-        }
-
-        return KATANA_PUBLIC_DIR.($fileRelativePath ? "/$fileRelativePath" : '');
-    }
-
-    /**
-     * Get the path of the view.
-     *
-     * @return string
-     */
-    protected function getViewPath()
-    {
-        return str_replace(['.blade.php', '.md'], '', $this->file->getRelativePathname());
-    }
-
-    /**
-     * Prepare the data for the blog landing page.
-     *
-     * We will pass only the first n posts and a next page path.
-     *
-     * @return void
-     */
-    protected function prepareBlogIndexViewData()
-    {
-        $postsPerPage = @$this->viewsData['postsPerPage'] ?: 5;
-
-        $this->viewsData['nextPage'] = count($this->viewsData['blogPosts']) > $postsPerPage ? '/blog-page/2' : null;
-
-        $this->viewsData['previousPage'] = null;
-
-        $this->viewsData['paginatedBlogPosts'] = array_slice($this->viewsData['blogPosts'], 0, $postsPerPage, true);
-    }
-
-    /**
-     * Get the file name without the extension.
-     *
-     * @return string
-     */
-    protected function getFileName(SplFileInfo $file = null)
-    {
-        $file = $file ?: $this->file;
-
-        return str_replace(['.blade.php', '.php', '.md'], '', $file->getBasename());
-    }
-
-    /**
-     * Append the view file information to the view data.
-     *
-     * @return void
-     */
-    protected function appendViewInformationToData()
-    {
-        $this->viewsData['currentViewPath'] = $this->viewPath;
-
-        $this->viewsData['currentUrlPath'] = ($path = str_replace(KATANA_PUBLIC_DIR, '', $this->directory)) ? $path : '/';
-    }
-    
-    /**
-     * Normalize Windows file paths to UNIX style
-     *
-     * @return string
-     */
-    protected function normalizePath($path)
-    {
-        return str_replace("\\", '/', $path);
     }
 }

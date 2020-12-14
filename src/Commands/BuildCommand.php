@@ -2,13 +2,13 @@
 
 namespace Katana\Commands;
 
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Command\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
 use Katana\SiteBuilder;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class BuildCommand extends Command
 {

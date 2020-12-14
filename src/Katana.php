@@ -2,16 +2,16 @@
 
 namespace Katana;
 
-use Symfony\Component\Console\Application as SymfonyConsole;
+use Illuminate\Events\Dispatcher;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Engines\CompilerEngine;
 use Illuminate\View\Engines\EngineResolver;
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\View\Factory;
 use Illuminate\View\FileViewFinder;
-use Illuminate\Events\Dispatcher;
 use Katana\Commands\BuildCommand;
 use Katana\Commands\PostCommand;
-use Illuminate\View\Factory;
+use Symfony\Component\Console\Application as SymfonyConsole;
 
 class Katana
 {
@@ -53,28 +53,20 @@ class Katana
     }
 
     /**
-     * Handle incoming console requests.
+     * Register global constants.
      *
      * @return void
      */
-    public function handle()
+    protected function registerConstants()
     {
-        $this->registerCommands();
+        // A place to save Blade's cached compilations.
+        define('KATANA_CACHE_DIR', getcwd() . '/_cache');
 
-        $this->application->run();
-    }
+        // A place to read site source files.
+        define('KATANA_CONTENT_DIR', getcwd() . '/content');
 
-    /**
-     * Register application commands.
-     *
-     * @return void
-     */
-    protected function registerCommands()
-    {
-        $this->application->addCommands([
-            new BuildCommand($this->viewFactory, $this->filesystem),
-            new PostCommand($this->viewFactory, $this->filesystem)
-        ]);
+        // A place to output the generated site.
+        define('KATANA_PUBLIC_DIR', getcwd() . '/public');
     }
 
     /**
@@ -117,7 +109,7 @@ class Katana
      */
     protected function createBladeCompiler()
     {
-        if (! $this->filesystem->isDirectory(KATANA_CACHE_DIR)) {
+        if (!$this->filesystem->isDirectory(KATANA_CACHE_DIR)) {
             $this->filesystem->makeDirectory(KATANA_CACHE_DIR);
         }
 
@@ -129,19 +121,27 @@ class Katana
     }
 
     /**
-     * Register global constants.
+     * Handle incoming console requests.
      *
      * @return void
      */
-    protected function registerConstants()
+    public function handle()
     {
-        // A place to save Blade's cached compilations.
-        define('KATANA_CACHE_DIR', getcwd().'/_cache');
+        $this->registerCommands();
 
-        // A place to read site source files.
-        define('KATANA_CONTENT_DIR', getcwd().'/content');
+        $this->application->run();
+    }
 
-        // A place to output the generated site.
-        define('KATANA_PUBLIC_DIR', getcwd().'/public');
+    /**
+     * Register application commands.
+     *
+     * @return void
+     */
+    protected function registerCommands()
+    {
+        $this->application->addCommands([
+            new BuildCommand($this->viewFactory, $this->filesystem),
+            new PostCommand($this->viewFactory, $this->filesystem)
+        ]);
     }
 }

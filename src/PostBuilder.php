@@ -1,6 +1,7 @@
 <?php
 
 namespace Katana;
+
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\SplFileInfo;
 use Katana\FileHandlers\BlogPostHandler;
@@ -10,7 +11,7 @@ use Illuminate\View\Factory;
 use Illuminate\Support\Str;
 
 class PostBuilder
-{   
+{
     /**
      * The title instance.
      *
@@ -66,25 +67,25 @@ class PostBuilder
     /**
      * Return the default template of the new post
      *
-     * @return string  
+     * @return string
      */
     public function buildTemplate()
-    {   
-        return ($this->template)?
-           "---
+    {
+        return ($this->template) ?
+            "---
             \rview::extends: _includes.blog_post_base
             \rview::yields: post_body
-            \rpageTitle: ".$this->title."
-            \rpost::title: ".$this->title."
-            \rpost::date: ".date('F d, Y')."
+            \rpageTitle: " . $this->title . "
+            \rpost::title: " . $this->title . "
+            \rpost::date: " . date('F d, Y') . "
             \rpost::brief: Write the description of the post here!
             \r---
             
-            \rWrite your post content here!":
+            \rWrite your post content here!" :
 
-           "@extends('_includes.blog_post_base')
-            \r@section('post::title', '".$this->title."')
-            \r@section('post::date', '".date('F d, Y')."')
+            "@extends('_includes.blog_post_base')
+            \r@section('post::title', '" . $this->title . "')
+            \r@section('post::date', '" . date('F d, Y') . "')
             \r@section('post::brief', 'Write the description of the post here!')
             \r@section('pageTitle')- @yield('post::title')@stop
             \r@section('post_body')
@@ -100,14 +101,14 @@ class PostBuilder
      * @return string
      */
     public function nameFile()
-    {   
+    {
         $slug = strtolower(trim($this->title));
 
         $slug = preg_replace('/[^a-z0-9-]/', '-', $slug);
 
         $slug = preg_replace('/-+/', "-", $slug);
 
-        $extension = ($this->template)? "md": "blade.php";
+        $extension = ($this->template) ? "md" : "blade.php";
 
         return sprintf('%s-%s-.%s', date('Y-m-d'), $slug, $extension);
     }

@@ -24,16 +24,6 @@ class Blade
     }
 
     /**
-     * Get the blade compiler after extension.
-     *
-     * @return BladeCompiler
-     */
-    public function getCompiler()
-    {
-        return $this->bladeCompiler;
-    }
-
-    /**
      * Register the @markdown and @endmarkdown blade directives.
      *
      * @return void
@@ -57,11 +47,21 @@ class Blade
     protected function registerURLDirective()
     {
         $this->bladeCompiler->directive('url', function ($expression) {
-            $expression = substr($expression, 1, - 1);
+            $expression = substr($expression, 1, -1);
 
-            $trailingSlash = ! str_contains($expression, '.') ? '/' : '';
+            $trailingSlash = !str_contains($expression, '.') ? '/' : '';
 
             return "<?php echo str_replace(['///', '//'], '/', \$base_url.'/'.trim({$expression}, '/').'{$trailingSlash}');  ?>";
         });
+    }
+
+    /**
+     * Get the blade compiler after extension.
+     *
+     * @return BladeCompiler
+     */
+    public function getCompiler()
+    {
+        return $this->bladeCompiler;
     }
 }
