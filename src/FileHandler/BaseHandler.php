@@ -13,62 +13,50 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class BaseHandler
 {
-    protected string $view;
-    protected string $directory;
     protected Factory $factory;
     protected Filesystem $filesystem;
-    protected SplFileInfo $file;
 
-    public function __construct(Filesystem $filesystem, Factory $viewFactory)
+    public function __construct(Filesystem $filesystem, Factory $factory)
     {
+        $this->factory = $factory;
         $this->filesystem = $filesystem;
-        $this->factory = $viewFactory;
     }
 
     public function handle(Config $config, SplFileInfo $file, array $data): void
     {
-        $this->file = $file;
-        $this->view = $this->getViewPath();
-        $this->directory = $this->getDirectoryPrettyName($config);
-        $this->appendViewInformationToData($config, $data);
+        $config->setCurrentViewPath($this->getViewPath($file));
+        $config->setCurrentUriPath($this->getDirectoryPrettyName($config, $file));
 
-        if ($this->indexViewShouldBePrepared($data)) {
-            $this->prepareBlogIndexViewData($data);
-        }
-
-        $content = $this->getFileContent($config, $data);
+        $content = $this->getFileContent($config, $file, $data);
         $filepath = sprintf(
             '%s/%s',
-            $this->prepareAndGetDirectory(),
+            $this->prepareAndGetDirectory($config),
             Str::endsWith($file->getFilename(), ['.blade.php', 'md']) ? 'index.html' : $file->getFilename()
         );
 
         $this->filesystem->put($filepath, $content);
     }
 
-    protected function getViewPath(): string
+    protected function getViewPath(SplFileInfo $fileInfo): string
     {
-        return str_replace(['.blade.php', '.md'], '', $this->file->getRelativePathname());
+        return str_replace(['.blade.php', '.md'], '', $fileInfo->getRelativePathname());
     }
 
-    protected function getDirectoryPrettyName(Config $config): string
+    protected function getDirectoryPrettyName(Config $config, SplFileInfo $fileInfo): string
     {
-        $fileBaseName = $this->getFileName();
-        $fileRelativePath = $this->normalizePath($this->file->getRelativePath());
+        $fileBaseName = $this->buildFileName($fileInfo);
+        $fileRelativePath = $this->normalizePath($fileInfo->getRelativePath());
 
-        if (in_array($this->file->getExtension(), ['php', 'md'])
-            && $fileBaseName != 'index') {
+        if (in_array($fileInfo->getExtension(), ['php', 'md']) && $fileBaseName != 'index') {
             $fileRelativePath .= $fileRelativePath ? "/$fileBaseName" : $fileBaseName;
         }
 
-        return $config->public() . ($fileRelativePath ? "/$fileRelativePath" : '');
+        return $config->publicPath() . ($fileRelativePath ? "/$fileRelativePath" : '');
     }
 
-    protected function getFileName(SplFileInfo $file = null): string
+    protected function buildFileName(SplFileInfo $fileInfo): string
     {
-        $file = $file ?: $this->file;
-
-        return str_replace(['.blade.php', '.php', '.md'], '', $file->getBasename());
+        return str_replace(['.blade.php', '.php', '.md'], '', $fileInfo->getBasename());
     }
 
     protected function normalizePath(string $path): string
@@ -76,57 +64,41 @@ class BaseHandler
         return str_replace("\\", '/', $path);
     }
 
-    protected function appendViewInformationToData(Config $config, array &$data): void
+    protected function getFileContent(Config $config, SplFileInfo $fileInfo, array $data): string
     {
-        $data['currentViewPath'] = $this->view;
-        $data['currentUrlPath'] = ($path = str_replace($config->public(), '', $this->directory)) ? $path : '/';
-    }
-
-    protected function prepareBlogIndexViewData(array &$data): void
-    {
-        $postsPerPage = $data['postsPerPage'] ?? 5;
-
-        $data['nextPage'] = count($data['blogPosts']) > $postsPerPage ? '/blog-page/2' : null;
-        $data['previousPage'] = null;
-        $data['paginatedBlogPosts'] = array_slice($data['blogPosts'], 0, $postsPerPage, true);
-    }
-
-    protected function getFileContent(Config $config, array $data): string
-    {
-        if (Str::endsWith($this->file->getFilename(), '.blade.php')) {
-            return $this->renderBlade($data);
+        if (Str::endsWith($fileInfo->getFilename(), '.blade.php')) {
+            return $this->renderBlade($config, $data);
         }
 
-        if (Str::endsWith($this->file->getFilename(), '.md')) {
-            return $this->renderMarkdown($config, $data);
+        if (Str::endsWith($fileInfo->getFilename(), '.md')) {
+            return $this->renderMarkdown($config, $fileInfo, $data);
         }
 
-        return $this->file->getContents();
+        return $fileInfo->getContents();
     }
 
-    protected function renderBlade(array $data): string
+    protected function renderBlade(Config $config, array $data): string
     {
-        return $this->factory->make($this->view, $data)->render();
+        $factory = $this->factory->make(
+            $config->getCurrentViewPath(),
+            $data
+        );
+
+        return $factory->render();
     }
 
-    protected function renderMarkdown(Config $config, array $data): string
+    protected function renderMarkdown(Config $config, SplFileInfo $fileInfo, array $data): string
     {
-        $markdownFileBuilder = new MarkdownFile($this->filesystem, $this->factory, $this->file, $config, $data);
+        $markdownFileBuilder = new MarkdownFile($this->filesystem, $this->factory, $fileInfo, $config, $data);
         return $markdownFileBuilder->render();
     }
 
-    protected function prepareAndGetDirectory(): string
+    protected function prepareAndGetDirectory(Config $config): ?string
     {
-        if (!$this->filesystem->isDirectory($this->directory)) {
-            $this->filesystem->makeDirectory($this->directory, 0755, true);
+        if (!$this->filesystem->isDirectory($config->getDirectory())) {
+            $this->filesystem->makeDirectory($config->getDirectory(), 0755, true);
         }
 
-        return $this->directory;
-    }
-
-    private function indexViewShouldBePrepared(array $data): bool
-    {
-        return $data['enableBlog'] ?? false
-            && $data['postsListView'] == $this->view;
+        return $config->getDirectory();
     }
 }

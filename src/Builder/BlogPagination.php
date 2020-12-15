@@ -25,8 +25,8 @@ final class BlogPagination
     public function build(Config $config, array $data): void
     {
         $view = $this->getPostsListView($data);
-        $postsPerPage = $data['postsPerPage'] ?? 5;
-        $this->pagesData = array_chunk($data['blogPosts'], $postsPerPage);
+        $postsPerPage = $data['per_page'] ?? 5;
+        $this->pagesData = array_chunk($data['blog_posts'], $postsPerPage);
 
         foreach ($this->pagesData as $pageIndex => $posts) {
             $this->buildPage($config, $data, $pageIndex, $view, $posts);
@@ -35,27 +35,27 @@ final class BlogPagination
 
     private function getPostsListView(array $data): string
     {
-        if (!isset($data['postsListView'])) {
+        if (!isset($data['paginated_view'])) {
             throw new Exception('The postsListView config value is missing.');
         }
 
-        if (!$this->factory->exists($data['postsListView'])) {
+        if (!$this->factory->exists($data['paginated_view'])) {
             throw new Exception(sprintf('The "%s" view is not found. Make sure the postsListView configuration key is correct.', $data['postsListView']));
         }
 
-        return $data['postsListView'];
+        return $data['paginated_view'];
     }
 
     private function buildPage(Config $config, array $data, int $pageIndex, string $view, array $posts): void
     {
         $viewData = array_merge($data, [
-            'paginatedBlogPosts' => $posts,
-            'previousPage' => $this->getPreviousPageLink($pageIndex),
-            'nextPage' => $this->getNextPageLink($pageIndex),
+            'paginated_blog_posts' => $posts,
+            'previous_page' => $this->getPreviousPageLink($pageIndex),
+            'next_page' => $this->getNextPageLink($pageIndex),
         ]);
 
         $pageContent = $this->factory->make($view, $viewData)->render();
-        $directory = sprintf('%s/blog-page/%d', $config->public(), $pageIndex + 1);
+        $directory = sprintf('%s/blog-page/%d', $config->publicPath(), $pageIndex + 1);
 
         $this->filesystem->makeDirectory($directory, 0755, true);
 
@@ -80,7 +80,7 @@ final class BlogPagination
 
     private function getBlogListPagePath(array $data): string
     {
-        $path = str_replace('.', '/', $data['postsListView']);
+        $path = str_replace('.', '/', $data['paginated_view']);
 
         if (Str::endsWith($path, 'index')) {
             return rtrim($path, '/index');

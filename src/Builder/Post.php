@@ -23,7 +23,7 @@ final class Post
     public function build(Config $config): void
     {
         $this->filesystem->put(
-            sprintf('/%s/_blog/%s', $config->content(), $this->nameFile()),
+            sprintf('/%s/_blog/%s', $config->contentPath(), $this->nameFile()),
             $this->buildTemplate()
         );
     }

@@ -63,14 +63,14 @@ final class Katana
 
         return new Factory(
             $resolver,
-            new FileViewFinder($filesystem, [$config->content()]),
+            new FileViewFinder($filesystem, [$config->contentPath()]),
             $dispatcher
         );
     }
 
     private function createBladeCompiler(Config $config, Filesystem $filesystem): BladeCompiler
     {
-        $cache = $config->cache();
+        $cache = $config->cachePath();
 
         if (!$filesystem->isDirectory($cache)) {
             $filesystem->makeDirectory($cache);

@@ -37,9 +37,9 @@ final class MarkdownFile
 
         $this->fileContent = $parsed[0];
         $this->fileYAML = $parsed[1];
-        $this->cached = $config->cache() . '/' . sha1($this->file->getRelativePathname()) . '.php';
+        $this->cached = $config->cachePath() . '/' . sha1($this->file->getRelativePathname()) . '.php';
         $this->bladeCompiler = $this->getBladeCompiler();
-        $this->engine = $this->getEngine();
+        $this->engine = $this->getEngine($filesystem);
         $this->config = $config;
     }
 
@@ -48,9 +48,9 @@ final class MarkdownFile
         return $this->factory->getEngineResolver()->resolve('blade')->getCompiler();
     }
 
-    private function getEngine(): PhpEngine
+    private function getEngine(Filesystem $filesystem): PhpEngine
     {
-        return new PhpEngine;
+        return new PhpEngine($filesystem);
     }
 
     public function render(): string

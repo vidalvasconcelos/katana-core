@@ -14,13 +14,11 @@ final class BlogPostHandler extends BaseHandler
 {
     public function getPostData(Config $config, SplFileInfo $file): object
     {
-        $this->file = $file;
-
-        if ($this->file->getExtension() == 'md') {
-            $postData = Markdown::parseWithYAML($this->file->getContents())[1];
+        if ($file->getExtension() == 'md') {
+            $postData = Markdown::parseWithYAML($file->getContents())[1];
         } else {
-            $view = $this->factory->make(str_replace('.blade.php', '', $this->file->getRelativePathname()));
-            $postData = $view->getFactory()->getSections();
+            $view = $this->factory->make(str_replace('.blade.php', '', $file->getRelativePathname()));
+            $postData = $view->getData();
 
             $view->render();
         }
@@ -37,27 +35,26 @@ final class BlogPostHandler extends BaseHandler
             unset($postData[$key]);
         }
 
-        $postData['path'] = str_replace($config->public(), '', $this->getDirectoryPrettyName($config)) . '/';
+        $postData['path'] = str_replace($config->publicPath(), '', $this->getDirectoryPrettyName($config, $file)) . '/';
 
         return json_decode(json_encode($postData), false);
     }
 
-    protected function getDirectoryPrettyName(Config $config): string
+    protected function getDirectoryPrettyName(Config $config, SplFileInfo $fileInfo): string
     {
-        $pathName = $this->normalizePath($this->file->getPathname());
+        $pathName = $this->normalizePath($fileInfo->getPathname());
 
         // If the post is inside a child directory of the _blog directory then
         // we deal with it like regular site files and generate a nested
         // directories based post path with exact file name.
         if ($this->isInsideBlogDirectory($pathName)) {
-            return str_replace('/_blog/', '/', parent::getDirectoryPrettyName());
+            return str_replace('/_blog/', '/', parent::getDirectoryPrettyName($config, $fileInfo));
         }
 
-        $fileBaseName = $this->getFileName();
-
+        $fileBaseName = $this->buildFileName($fileInfo);
         $fileRelativePath = $this->getBlogPostSlug($fileBaseName);
 
-        return $config->public() . "/$fileRelativePath";
+        return $config->publicPath() . "/$fileRelativePath";
     }
 
     protected function isInsideBlogDirectory(string $pathName): bool

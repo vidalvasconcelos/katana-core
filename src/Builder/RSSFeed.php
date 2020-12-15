@@ -29,21 +29,21 @@ final class RSSFeed
         $pageContent = $this->factory->make($view, $data)->render();
 
         $this->filesystem->put(
-            sprintf('%s/%s', $config->public(), 'feed.rss'),
+            sprintf('%s/%s', $config->publicPath(), 'feed.rss'),
             $pageContent
         );
     }
 
     private function getRSSView(array $data): ?string
     {
-        if (!isset($data['rssFeedView']) || !@$data['rssFeedView']) {
+        if (!isset($data['rss_feed_view']) || !@$data['rss_feed_view']) {
             return null;
         }
 
-        if (!$this->factory->exists($data['rssFeedView'])) {
-            throw new Exception(sprintf('The "%s" view is not found. Make sure the rssFeedView configuration key is correct.', $data['rssFeedView']));
+        if (!$this->factory->exists($data['rss_feed_view'])) {
+            throw new Exception(sprintf('The "%s" view is not found. Make sure the rssFeedView configuration key is correct.', $data['rss_feed_view']));
         }
 
-        return $data['rssFeedView'];
+        return $data['rss_feed_view'];
     }
 }

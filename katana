@@ -12,18 +12,6 @@ $katana = new \Katana\Katana(
 $katana->handle(new \Katana\Config([
     /**
      * --------------------------------------------------------------------------
-     * Site base URL
-     * --------------------------------------------------------------------------
-     *
-     * This base URL will be used to generate links for the @url blade
-     * directive, it should always start with a forward slash.
-     *
-     */
-
-    'base_url' => '/',
-
-    /**
-     * --------------------------------------------------------------------------
      * Enabling the blog generator
      * --------------------------------------------------------------------------
      *
@@ -35,7 +23,19 @@ $katana->handle(new \Katana\Config([
      *
      */
 
-    'enableBlog' => true,
+    'enable' => true,
+
+    /**
+     * --------------------------------------------------------------------------
+     * Site base URL
+     * --------------------------------------------------------------------------
+     *
+     * This base URL will be used to generate links for the @url blade
+     * directive, it should always start with a forward slash.
+     *
+     */
+
+    'base_uri' => '/',
 
     /**
      * --------------------------------------------------------------------------
@@ -45,7 +45,7 @@ $katana->handle(new \Katana\Config([
      * The number of posts to appear on every page in the blog pages.
      *
      */
-    'postsPerPage' => 3,
+    'per_page' => 3,
 
     /**
      * --------------------------------------------------------------------------
@@ -57,7 +57,7 @@ $katana->handle(new \Katana\Config([
      *
      */
 
-    'postsListView' => 'blog',
+    'paginated_view' => 'blog',
 
     /**
      * --------------------------------------------------------------------------
@@ -69,9 +69,9 @@ $katana->handle(new \Katana\Config([
      *
      */
 
-    'siteName' => 'Katana',
+    'name' => 'Katana',
 
-    'siteDescription' => 'Yet another awesome site.',
+    'description' => 'Yet another awesome site.',
 
     /**
      * --------------------------------------------------------------------------
@@ -82,8 +82,8 @@ $katana->handle(new \Katana\Config([
      */
 
     'public_path'     => __DIR__,
-    
+
     'content_path'    => __DIR__,
-    
+
     'cache_path'      => __DIR__,
 ]));

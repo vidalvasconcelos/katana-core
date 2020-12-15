@@ -36,14 +36,13 @@ final class Site
     public function build(Config $config): void
     {
         $data = [];
-        $this->readConfigs();
         $files = $this->getSiteFiles($config);
 
         $otherFiles = array_filter($files, function ($file) {
             return !Str::contains($file->getRelativePath(), '_blog');
         });
 
-        if ($this->configs['enableBlog'] ?? false) {
+        if ($config->enable()) {
             $blogPostsFiles = array_filter($files, function ($file) {
                 return Str::contains($file->getRelativePath(), '_blog');
             });
@@ -51,46 +50,25 @@ final class Site
             $this->readBlogPostsData($config, $blogPostsFiles);
         }
 
-        $this->buildViewsData($data);
-        $this->filesystem->cleanDirectory($config->public());
+        $config->setPosts(array_reverse($this->posts));
+        $this->filesystem->cleanDirectory($config->publicPath());
 
         if ($this->forceBuild) {
-            $this->filesystem->cleanDirectory($config->cache());
+            $this->filesystem->cleanDirectory($config->cachePath());
         }
 
         $this->handleSiteFiles($config, $otherFiles, $data);
 
-        if ($this->configs['enableBlog'] ?? false) {
+        if ($config->enable()) {
             $this->handleBlogPostsFiles($config, $blogPostsFiles, $data);
             $this->buildBlogPagination($config, $data);
             $this->buildRSSFeed($config, $data);
         }
     }
 
-    /**
-     * Read site configurations based on the current environment.
-     *
-     * It loads the default config file, then the environment specific
-     * config file, if found, and finally merges any other configs.
-     *
-     * @return void
-     */
-    private function readConfigs(): void
-    {
-        $configs = include getcwd() . '/config.php';
-
-        if ($this->environment != 'default'
-            && $this->filesystem->exists(getcwd() . '/' . $fileName = "config-{$this->environment}.php")
-        ) {
-            $configs = array_merge($configs, include getcwd() . '/' . $fileName);
-        }
-
-        $this->configs = array_merge($configs, $this->configs);
-    }
-
     private function getSiteFiles(Config $config): array
     {
-        $dir = $config->content();
+        $dir = $config->contentPath();
         $files = $this->filesystem->allFiles($dir);
 
         $files = array_filter($files, function (SplFileInfo $file): bool {
@@ -112,7 +90,7 @@ final class Site
 
     private function appendFiles(Config $config, array &$files): void
     {
-        $dir = $config->content();
+        $dir = $config->contentPath();
 
         if ($this->filesystem->exists($dir . '/.htaccess')) {
             $files[] = new SplFileInfo($dir . '/.htaccess', '', '.htaccess');
@@ -124,11 +102,6 @@ final class Site
         foreach ($files as $file) {
             $this->posts[] = $this->blogPostHandler->getPostData($config, $file);
         }
-    }
-
-    private function buildViewsData(array &$data): void
-    {
-        $data = $this->configs + ['blogPosts' => array_reverse($this->posts)];
     }
 
     private function handleSiteFiles(Config $config, array $files, array $data): void
