@@ -8,7 +8,7 @@ use Illuminate\View\Compilers\BladeCompiler;
 
 final class Blade
 {
-    protected BladeCompiler $compiler;
+    private BladeCompiler $compiler;
 
     public function __construct(BladeCompiler $compiler)
     {
@@ -17,7 +17,7 @@ final class Blade
         $this->registerURLDirective();
     }
 
-    protected function registerMarkdownDirective(): void
+    private function registerMarkdownDirective(): void
     {
         $this->compiler->directive('markdown', function () {
             return "<?php echo \\Katana\\Markdown::parse(<<<'EOT'";
@@ -28,7 +28,7 @@ final class Blade
         });
     }
 
-    protected function registerURLDirective(): void
+    private function registerURLDirective(): void
     {
         $this->compiler->directive('url', function ($expression) {
             $expression = substr($expression, 1, -1);

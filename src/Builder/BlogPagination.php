@@ -11,10 +11,10 @@ use Katana\Config;
 
 final class BlogPagination
 {
-    protected array $data;
-    protected array $pagesData;
-    protected Factory $factory;
-    protected Filesystem $filesystem;
+    private array $data;
+    private array $pagesData;
+    private Factory $factory;
+    private Filesystem $filesystem;
 
     public function __construct(Filesystem $filesystem, Factory $factory, array $data)
     {
@@ -34,7 +34,7 @@ final class BlogPagination
         }
     }
 
-    protected function getPostsListView(): string
+    private function getPostsListView(): string
     {
         if (!isset($this->data['postsListView'])) {
             throw new Exception('The postsListView config value is missing.');
@@ -47,7 +47,7 @@ final class BlogPagination
         return $this->data['postsListView'];
     }
 
-    protected function buildPage(Config $config, int $pageIndex, string $view, array $posts): void
+    private function buildPage(Config $config, int $pageIndex, string $view, array $posts): void
     {
         $viewData = array_merge(
             $this->data,
@@ -70,7 +70,7 @@ final class BlogPagination
         );
     }
 
-    protected function getPreviousPageLink(int $currentPageIndex): ?string
+    private function getPreviousPageLink(int $currentPageIndex): ?string
     {
         if (!isset($this->pagesData[$currentPageIndex - 1])) {
             return null;
@@ -83,7 +83,7 @@ final class BlogPagination
         return '/blog-page/' . $currentPageIndex . '/';
     }
 
-    protected function getBlogListPagePath(): string
+    private function getBlogListPagePath(): string
     {
         $path = str_replace('.', '/', $this->data['postsListView']);
 
@@ -94,7 +94,7 @@ final class BlogPagination
         return $path;
     }
 
-    protected function getNextPageLink($currentPageIndex): ?string
+    private function getNextPageLink($currentPageIndex): ?string
     {
         if (!isset($this->pagesData[$currentPageIndex + 1])) {
             return null;

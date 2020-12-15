@@ -15,15 +15,15 @@ use Symfony\Component\Finder\SplFileInfo;
 
 final class MarkdownFile
 {
-    protected array $data;
-    protected array $fileYAML;
-    protected string $cached;
-    protected string $fileContent;
-    protected Factory $factory;
-    protected Filesystem $filesystem;
-    protected BladeCompiler $bladeCompiler;
-    protected SplFileInfo $file;
-    protected PhpEngine $engine;
+    private array $data;
+    private array $fileYAML;
+    private string $cached;
+    private string $fileContent;
+    private Factory $factory;
+    private Filesystem $filesystem;
+    private BladeCompiler $bladeCompiler;
+    private SplFileInfo $file;
+    private PhpEngine $engine;
     private Config $config;
 
     public function __construct(Filesystem $filesystem, Factory $factory, SplFileInfo $file, Config $config, array $data)
@@ -43,12 +43,12 @@ final class MarkdownFile
         $this->config = $config;
     }
 
-    protected function getBladeCompiler(): BladeCompiler
+    private function getBladeCompiler(): BladeCompiler
     {
         return $this->factory->getEngineResolver()->resolve('blade')->getCompiler();
     }
 
-    protected function getEngine(): PhpEngine
+    private function getEngine(): PhpEngine
     {
         return new PhpEngine;
     }
@@ -66,7 +66,7 @@ final class MarkdownFile
         return $this->engine->get($this->cached, $data);
     }
 
-    protected function buildBladeViewContent(): string
+    private function buildBladeViewContent(): string
     {
         $sections = '';
 
@@ -82,7 +82,7 @@ final class MarkdownFile
             @stop";
     }
 
-    protected function isExpired(): bool
+    private function isExpired(): bool
     {
         if (!$this->filesystem->exists($this->cached)) {
             return true;
@@ -93,7 +93,7 @@ final class MarkdownFile
         return $lastModified >= $this->filesystem->lastModified($this->cached);
     }
 
-    protected function getViewData(): array
+    private function getViewData(): array
     {
         $data = array_merge($this->factory->getShared(), $this->data);
 

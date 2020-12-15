@@ -15,8 +15,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class Build extends Command
 {
-    protected Factory $factory;
-    protected Filesystem $filesystem;
+    private Factory $factory;
+    private Filesystem $filesystem;
     private Config $config;
 
     public function __construct(Factory $factory, Filesystem $filesystem, Config $config)

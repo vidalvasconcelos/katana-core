@@ -11,9 +11,9 @@ use Katana\Config;
 
 final class RSSFeed
 {
-    protected array $data = [];
-    protected Factory $factory;
-    protected Filesystem $filesystem;
+    private array $data;
+    private Factory $factory;
+    private Filesystem $filesystem;
 
     public function __construct(Filesystem $filesystem, Factory $factory, array $data)
     {
@@ -36,7 +36,7 @@ final class RSSFeed
         );
     }
 
-    protected function getRSSView(): ?string
+    private function getRSSView(): ?string
     {
         if (!isset($this->data['rssFeedView']) || !@$this->data['rssFeedView']) {
             return null;

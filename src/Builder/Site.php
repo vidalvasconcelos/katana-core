@@ -12,17 +12,18 @@ use Symfony\Component\Finder\SplFileInfo;
 
 final class Site
 {
-    protected array $data;
-    protected array $posts;
-    protected array $configs;
-    protected string $environment;
-    protected string $blogDirectory = '_blog';
-    protected string $includesDirectory = '_includes';
-    protected Factory $factory;
-    protected Filesystem $filesystem;
-    protected BaseHandler $fileHandler;
-    protected BlogPostHandler $blogPostHandler;
-    protected bool $forceBuild = false;
+    private array $data;
+    private array $posts;
+    private array $configs;
+    private string $environment;
+    private string $blogDirectory = '_blog';
+    private string $includesDirectory = '_includes';
+    private bool $forceBuild;
+
+    private Factory $factory;
+    private Filesystem $filesystem;
+    private BaseHandler $fileHandler;
+    private BlogPostHandler $blogPostHandler;
 
     public function __construct(Filesystem $filesystem, Factory $factory, string $environment, bool $forceBuild = false)
     {
@@ -75,7 +76,7 @@ final class Site
      *
      * @return void
      */
-    protected function readConfigs(): void
+    private function readConfigs(): void
     {
         $configs = include getcwd() . '/config.php';
 
@@ -89,7 +90,7 @@ final class Site
         $this->configs = array_merge($configs, (array)$this->configs);
     }
 
-    protected function getSiteFiles(Config $config): array
+    private function getSiteFiles(Config $config): array
     {
         $dir = $config->content();
         $files = $this->filesystem->allFiles($dir);
@@ -103,7 +104,7 @@ final class Site
         return $files;
     }
 
-    protected function filterFile(SplFileInfo $file): bool
+    private function filterFile(SplFileInfo $file): bool
     {
         return !Str::startsWith(
             $file->getRelativePathname(),
@@ -111,7 +112,7 @@ final class Site
         );
     }
 
-    protected function appendFiles(Config $config, array &$files): void
+    private function appendFiles(Config $config, array &$files): void
     {
         $dir = $config->content();
 
@@ -120,21 +121,21 @@ final class Site
         }
     }
 
-    protected function readBlogPostsData(Config $config, array $files): void
+    private function readBlogPostsData(Config $config, array $files): void
     {
         foreach ($files as $file) {
             $this->posts[] = $this->blogPostHandler->getPostData($config, $file);
         }
     }
 
-    protected function buildViewsData(): void
+    private function buildViewsData(): void
     {
         $this->data = $this->configs + ['blogPosts' => array_reverse((array)$this->posts)];
         $this->fileHandler->data = $this->data;
         $this->blogPostHandler->data = $this->data;
     }
 
-    protected function handleSiteFiles(Config $config, array $files): void
+    private function handleSiteFiles(Config $config, array $files): void
     {
         foreach ($files as $file) {
             $this->fileHandler->handle($config, $file);
@@ -148,7 +149,7 @@ final class Site
         }
     }
 
-    protected function buildBlogPagination(Config $config): void
+    private function buildBlogPagination(Config $config): void
     {
         $builder = new BlogPagination(
             $this->filesystem,
@@ -159,7 +160,7 @@ final class Site
         $builder->build($config);
     }
 
-    protected function buildRSSFeed(Config $config): void
+    private function buildRSSFeed(Config $config): void
     {
         $builder = new RSSFeed(
             $this->filesystem,
