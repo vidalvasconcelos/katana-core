@@ -11,24 +11,22 @@ use Katana\Config;
 
 final class RSSFeed
 {
-    private array $data;
     private Factory $factory;
     private Filesystem $filesystem;
 
-    public function __construct(Filesystem $filesystem, Factory $factory, array $data)
+    public function __construct(Filesystem $filesystem, Factory $factory)
     {
         $this->filesystem = $filesystem;
         $this->factory = $factory;
-        $this->data = $data;
     }
 
-    public function build(Config $config): void
+    public function build(Config $config, array $data): void
     {
-        if (!$view = $this->getRSSView()) {
+        if (!$view = $this->getRSSView($data)) {
             return;
         }
 
-        $pageContent = $this->factory->make($view, $this->data)->render();
+        $pageContent = $this->factory->make($view, $data)->render();
 
         $this->filesystem->put(
             sprintf('%s/%s', $config->public(), 'feed.rss'),
@@ -36,16 +34,16 @@ final class RSSFeed
         );
     }
 
-    private function getRSSView(): ?string
+    private function getRSSView(array $data): ?string
     {
-        if (!isset($this->data['rssFeedView']) || !@$this->data['rssFeedView']) {
+        if (!isset($data['rssFeedView']) || !@$data['rssFeedView']) {
             return null;
         }
 
-        if (!$this->factory->exists($this->data['rssFeedView'])) {
-            throw new Exception(sprintf('The "%s" view is not found. Make sure the rssFeedView configuration key is correct.', $this->data['rssFeedView']));
+        if (!$this->factory->exists($data['rssFeedView'])) {
+            throw new Exception(sprintf('The "%s" view is not found. Make sure the rssFeedView configuration key is correct.', $data['rssFeedView']));
         }
 
-        return $this->data['rssFeedView'];
+        return $data['rssFeedView'];
     }
 }

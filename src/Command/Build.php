@@ -15,9 +15,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class Build extends Command
 {
+    private Config $config;
     private Factory $factory;
     private Filesystem $filesystem;
-    private Config $config;
 
     public function __construct(Factory $factory, Filesystem $filesystem, Config $config)
     {
@@ -37,13 +37,10 @@ final class Build extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
-        $siteBuilder = new Site(
-            $this->filesystem,
-            $this->factory,
-            $input->getOption('env'),
-            $input->getOption('force')
-        );
+        $env = $input->getOption('env');
+        $force = $input->getOption('force');
 
+        $siteBuilder = new Site($this->filesystem, $this->factory, $env, $force);
         $siteBuilder->build($this->config);
 
         $output->writeln("<info>Site was generated successfully.</info>");

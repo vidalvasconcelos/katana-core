@@ -7,59 +7,54 @@ namespace Katana\Builder;
 use Exception;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
+use Illuminate\Support\Str;
 use Katana\Config;
 
 final class BlogPagination
 {
-    private array $data;
     private array $pagesData;
     private Factory $factory;
     private Filesystem $filesystem;
 
-    public function __construct(Filesystem $filesystem, Factory $factory, array $data)
+    public function __construct(Filesystem $filesystem, Factory $factory)
     {
         $this->filesystem = $filesystem;
         $this->factory = $factory;
-        $this->data = $data;
     }
 
-    public function build(Config $config): void
+    public function build(Config $config, array $data): void
     {
-        $view = $this->getPostsListView();
-        $postsPerPage = @$this->data['postsPerPage'] ?: 5;
-        $this->pagesData = array_chunk($this->data['blogPosts'], $postsPerPage);
+        $view = $this->getPostsListView($data);
+        $postsPerPage = $data['postsPerPage'] ?? 5;
+        $this->pagesData = array_chunk($data['blogPosts'], $postsPerPage);
 
         foreach ($this->pagesData as $pageIndex => $posts) {
-            $this->buildPage($config, $pageIndex, $view, $posts);
+            $this->buildPage($config, $data, $pageIndex, $view, $posts);
         }
     }
 
-    private function getPostsListView(): string
+    private function getPostsListView(array $data): string
     {
-        if (!isset($this->data['postsListView'])) {
+        if (!isset($data['postsListView'])) {
             throw new Exception('The postsListView config value is missing.');
         }
 
-        if (!$this->factory->exists($this->data['postsListView'])) {
-            throw new Exception(sprintf('The "%s" view is not found. Make sure the postsListView configuration key is correct.', $this->data['postsListView']));
+        if (!$this->factory->exists($data['postsListView'])) {
+            throw new Exception(sprintf('The "%s" view is not found. Make sure the postsListView configuration key is correct.', $data['postsListView']));
         }
 
-        return $this->data['postsListView'];
+        return $data['postsListView'];
     }
 
-    private function buildPage(Config $config, int $pageIndex, string $view, array $posts): void
+    private function buildPage(Config $config, array $data, int $pageIndex, string $view, array $posts): void
     {
-        $viewData = array_merge(
-            $this->data,
-            [
-                'paginatedBlogPosts' => $posts,
-                'previousPage' => $this->getPreviousPageLink($pageIndex),
-                'nextPage' => $this->getNextPageLink($pageIndex),
-            ]
-        );
+        $viewData = array_merge($data, [
+            'paginatedBlogPosts' => $posts,
+            'previousPage' => $this->getPreviousPageLink($pageIndex),
+            'nextPage' => $this->getNextPageLink($pageIndex),
+        ]);
 
         $pageContent = $this->factory->make($view, $viewData)->render();
-
         $directory = sprintf('%s/blog-page/%d', $config->public(), $pageIndex + 1);
 
         $this->filesystem->makeDirectory($directory, 0755, true);
@@ -83,11 +78,11 @@ final class BlogPagination
         return '/blog-page/' . $currentPageIndex . '/';
     }
 
-    private function getBlogListPagePath(): string
+    private function getBlogListPagePath(array $data): string
     {
-        $path = str_replace('.', '/', $this->data['postsListView']);
+        $path = str_replace('.', '/', $data['postsListView']);
 
-        if (ends_with($path, 'index')) {
+        if (Str::endsWith($path, 'index')) {
             return rtrim($path, '/index');
         }
 

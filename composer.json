@@ -12,11 +12,12 @@
   "require": {
     "php": ">=7.4",
     "ext-json": "*",
-    "symfony/console": "2.6.7",
-    "illuminate/view": "5.2.*",
-    "erusev/parsedown": "^1.6",
-    "symfony/debug": "2.8.*|3.0.*",
-    "mnapoli/front-yaml": "^1.5"
+    "symfony/debug": "^4.4",
+    "symfony/console": "^5.2",
+    "illuminate/view": "^8.18",
+    "erusev/parsedown": "^1.7",
+    "mnapoli/front-yaml": "^1.8",
+    "vimeo/psalm": "^4.3"
   },
   "autoload": {
     "psr-4": {

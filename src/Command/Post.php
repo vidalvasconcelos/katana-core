@@ -38,13 +38,12 @@ final class Post extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
-        $post = new Builder(
-            $this->filesystem,
-            $input->getArgument('title'),
-            $input->getOption('m')
-        );
+        $title = $input->getArgument('title');
+        $markdown = $input->getOption('m');
 
+        $post = new Builder($this->filesystem, $title, $markdown);
         $post->build($this->config);
+
         $output->writeln(sprintf(
             "<info>Post \"%s\" was generated successfully.</info>",
             $input->getArgument('title')

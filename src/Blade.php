@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Katana;
 
+use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 
 final class Blade
@@ -32,7 +33,7 @@ final class Blade
     {
         $this->compiler->directive('url', function ($expression) {
             $expression = substr($expression, 1, -1);
-            $trailingSlash = !str_contains($expression, '.') ? '/' : '';
+            $trailingSlash = !Str::contains($expression, '.') ? '/' : '';
 
             return "<?php echo str_replace(['///', '//'], '/', \$base_url.'/'.trim({$expression}, '/').'{$trailingSlash}');  ?>";
         });

@@ -12,11 +12,9 @@ use Symfony\Component\Finder\SplFileInfo;
 
 final class Site
 {
-    private array $data;
     private array $posts;
     private array $configs;
     private string $environment;
-    private string $blogDirectory = '_blog';
     private string $includesDirectory = '_includes';
     private bool $forceBuild;
 
@@ -37,34 +35,35 @@ final class Site
 
     public function build(Config $config): void
     {
+        $data = [];
         $this->readConfigs();
         $files = $this->getSiteFiles($config);
 
         $otherFiles = array_filter($files, function ($file) {
-            return !str_contains($file->getRelativePath(), '_blog');
+            return !Str::contains($file->getRelativePath(), '_blog');
         });
 
-        if (@$this->configs['enableBlog']) {
+        if ($this->configs['enableBlog'] ?? false) {
             $blogPostsFiles = array_filter($files, function ($file) {
-                return str_contains($file->getRelativePath(), '_blog');
+                return Str::contains($file->getRelativePath(), '_blog');
             });
 
             $this->readBlogPostsData($config, $blogPostsFiles);
         }
 
-        $this->buildViewsData();
+        $this->buildViewsData($data);
         $this->filesystem->cleanDirectory($config->public());
 
         if ($this->forceBuild) {
             $this->filesystem->cleanDirectory($config->cache());
         }
 
-        $this->handleSiteFiles($config, $otherFiles);
+        $this->handleSiteFiles($config, $otherFiles, $data);
 
-        if (@$this->configs['enableBlog']) {
-            $this->handleBlogPostsFiles($config, $blogPostsFiles);
-            $this->buildBlogPagination($config);
-            $this->buildRSSFeed($config);
+        if ($this->configs['enableBlog'] ?? false) {
+            $this->handleBlogPostsFiles($config, $blogPostsFiles, $data);
+            $this->buildBlogPagination($config, $data);
+            $this->buildRSSFeed($config, $data);
         }
     }
 
@@ -80,14 +79,13 @@ final class Site
     {
         $configs = include getcwd() . '/config.php';
 
-        if (
-            $this->environment != 'default' &&
-            $this->filesystem->exists(getcwd() . '/' . $fileName = "config-{$this->environment}.php")
+        if ($this->environment != 'default'
+            && $this->filesystem->exists(getcwd() . '/' . $fileName = "config-{$this->environment}.php")
         ) {
             $configs = array_merge($configs, include getcwd() . '/' . $fileName);
         }
 
-        $this->configs = array_merge($configs, (array)$this->configs);
+        $this->configs = array_merge($configs, $this->configs);
     }
 
     private function getSiteFiles(Config $config): array
@@ -128,51 +126,34 @@ final class Site
         }
     }
 
-    private function buildViewsData(): void
+    private function buildViewsData(array &$data): void
     {
-        $this->data = $this->configs + ['blogPosts' => array_reverse((array)$this->posts)];
-        $this->fileHandler->data = $this->data;
-        $this->blogPostHandler->data = $this->data;
+        $data = $this->configs + ['blogPosts' => array_reverse($this->posts)];
     }
 
-    private function handleSiteFiles(Config $config, array $files): void
+    private function handleSiteFiles(Config $config, array $files, array $data): void
     {
         foreach ($files as $file) {
-            $this->fileHandler->handle($config, $file);
+            $this->fileHandler->handle($config, $file, $data);
         }
     }
 
-    private function handleBlogPostsFiles(Config $config, array $files): void
+    private function handleBlogPostsFiles(Config $config, array $files, array $data): void
     {
         foreach ($files as $file) {
-            $this->blogPostHandler->handle($config, $file);
+            $this->blogPostHandler->handle($config, $file, $data);
         }
     }
 
-    private function buildBlogPagination(Config $config): void
+    private function buildBlogPagination(Config $config, array $data): void
     {
-        $builder = new BlogPagination(
-            $this->filesystem,
-            $this->factory,
-            $this->data
-        );
-
-        $builder->build($config);
+        $builder = new BlogPagination($this->filesystem, $this->factory);
+        $builder->build($config, $data);
     }
 
-    private function buildRSSFeed(Config $config): void
+    private function buildRSSFeed(Config $config, array $data): void
     {
-        $builder = new RSSFeed(
-            $this->filesystem,
-            $this->factory,
-            $this->data
-        );
-
-        $builder->build($config);
-    }
-
-    public function setConfig(string $key, $value): void
-    {
-        $this->configs[$key] = $value;
+        $builder = new RSSFeed($this->filesystem, $this->factory);
+        $builder->build($config, $data);
     }
 }

@@ -6,18 +6,18 @@ namespace Katana\FileHandler;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
+use Illuminate\Support\Str;
 use Katana\Builder\MarkdownFile;
 use Katana\Config;
 use Symfony\Component\Finder\SplFileInfo;
 
 class BaseHandler
 {
-    public array $data = [];
+    protected string $view;
+    protected string $directory;
     protected Factory $factory;
     protected Filesystem $filesystem;
     protected SplFileInfo $file;
-    protected string $view;
-    protected string $directory;
 
     public function __construct(Filesystem $filesystem, Factory $viewFactory)
     {
@@ -25,28 +25,25 @@ class BaseHandler
         $this->factory = $viewFactory;
     }
 
-    public function handle(Config $config, SplFileInfo $file): void
+    public function handle(Config $config, SplFileInfo $file, array $data): void
     {
         $this->file = $file;
         $this->view = $this->getViewPath();
         $this->directory = $this->getDirectoryPrettyName($config);
-        $this->appendViewInformationToData($config);
+        $this->appendViewInformationToData($config, $data);
 
-        if (@$this->data['enableBlog']
-            && @$this->data['postsListView'] == $this->view) {
-            $this->prepareBlogIndexViewData();
+        if ($this->indexViewShouldBePrepared($data)) {
+            $this->prepareBlogIndexViewData($data);
         }
 
-        $content = $this->getFileContent();
-
-        $this->filesystem->put(
-            sprintf(
-                '%s/%s',
-                $this->prepareAndGetDirectory(),
-                ends_with($file->getFilename(), ['.blade.php', 'md']) ? 'index.html' : $file->getFilename()
-            ),
-            $content
+        $content = $this->getFileContent($config, $data);
+        $filepath = sprintf(
+            '%s/%s',
+            $this->prepareAndGetDirectory(),
+            Str::endsWith($file->getFilename(), ['.blade.php', 'md']) ? 'index.html' : $file->getFilename()
         );
+
+        $this->filesystem->put($filepath, $content);
     }
 
     protected function getViewPath(): string
@@ -79,51 +76,42 @@ class BaseHandler
         return str_replace("\\", '/', $path);
     }
 
-    protected function appendViewInformationToData(Config $config): void
+    protected function appendViewInformationToData(Config $config, array &$data): void
     {
-        $this->data['currentViewPath'] = $this->view;
-        $this->data['currentUrlPath'] = ($path = str_replace($config->public(), '', $this->directory)) ? $path : '/';
+        $data['currentViewPath'] = $this->view;
+        $data['currentUrlPath'] = ($path = str_replace($config->public(), '', $this->directory)) ? $path : '/';
     }
 
-    protected function prepareBlogIndexViewData(): void
+    protected function prepareBlogIndexViewData(array &$data): void
     {
-        $postsPerPage = @$this->data['postsPerPage'] ?: 5;
+        $postsPerPage = $data['postsPerPage'] ?? 5;
 
-        $this->data['nextPage'] = count($this->data['blogPosts']) > $postsPerPage ? '/blog-page/2' : null;
-        $this->data['previousPage'] = null;
-        $this->data['paginatedBlogPosts'] = array_slice($this->data['blogPosts'], 0, $postsPerPage, true);
+        $data['nextPage'] = count($data['blogPosts']) > $postsPerPage ? '/blog-page/2' : null;
+        $data['previousPage'] = null;
+        $data['paginatedBlogPosts'] = array_slice($data['blogPosts'], 0, $postsPerPage, true);
     }
 
-    protected function getFileContent(): string
+    protected function getFileContent(Config $config, array $data): string
     {
-        if (ends_with($this->file->getFilename(), '.blade.php')) {
-            return $this->renderBlade();
+        if (Str::endsWith($this->file->getFilename(), '.blade.php')) {
+            return $this->renderBlade($data);
         }
 
-        if (ends_with($this->file->getFilename(), '.md')) {
-            return $this->renderMarkdown();
+        if (Str::endsWith($this->file->getFilename(), '.md')) {
+            return $this->renderMarkdown($config, $data);
         }
 
         return $this->file->getContents();
     }
 
-    protected function renderBlade(): string
+    protected function renderBlade(array $data): string
     {
-        return $this->factory->make(
-            $this->view,
-            $this->data
-        )->render();
+        return $this->factory->make($this->view, $data)->render();
     }
 
-    protected function renderMarkdown(): string
+    protected function renderMarkdown(Config $config, array $data): string
     {
-        $markdownFileBuilder = new MarkdownFile(
-            $this->filesystem,
-            $this->factory,
-            $this->file,
-            $this->data
-        );
-
+        $markdownFileBuilder = new MarkdownFile($this->filesystem, $this->factory, $this->file, $config, $data);
         return $markdownFileBuilder->render();
     }
 
@@ -134,5 +122,11 @@ class BaseHandler
         }
 
         return $this->directory;
+    }
+
+    private function indexViewShouldBePrepared(array $data): bool
+    {
+        return $data['enableBlog'] ?? false
+            && $data['postsListView'] == $this->view;
     }
 }

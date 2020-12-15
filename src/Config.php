@@ -12,9 +12,9 @@ final class Config
 
     public function __construct(array $config)
     {
-        $this->cacheDirectory = $config['KATANA_CACHE_DIR'] ?? getcwd() . '/_cache';
+        $this->cacheDirectory   = $config['KATANA_CACHE_DIR']   ?? getcwd() . '/_cache';
         $this->contentDirectory = $config['KATANA_CONTENT_DIR'] ?? getcwd() . '/content';
-        $this->publicDirectory = $config['KATANA_PUBLIC_DIR'] ?? getcwd() . '/public';
+        $this->publicDirectory  = $config['KATANA_PUBLIC_DIR']  ?? getcwd() . '/public';
     }
 
     public function cache(): string
