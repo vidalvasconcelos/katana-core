@@ -35,7 +35,7 @@ final class Build extends Command
             ->addOption('force', null, InputOption::VALUE_NONE, 'Clear the cache before building.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $env = $input->getOption('env');
         $force = $input->getOption('force');
@@ -44,5 +44,6 @@ final class Build extends Command
         $siteBuilder->build($this->config);
 
         $output->writeln("<info>Site was generated successfully.</info>");
+        return 0;
     }
 }

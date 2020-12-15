@@ -36,7 +36,7 @@ final class Post extends Command
             ->addOption('m', null, InputOption::VALUE_NONE, 'Create a Markdown template file');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $title = $input->getArgument('title');
         $markdown = $input->getOption('m');
@@ -48,5 +48,7 @@ final class Post extends Command
             "<info>Post \"%s\" was generated successfully.</info>",
             $input->getArgument('title')
         ));
+
+        return 0;
     }
 }

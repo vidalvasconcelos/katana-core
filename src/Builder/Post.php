@@ -10,14 +10,14 @@ use Katana\Config;
 final class Post
 {
     private string $title;
-    private ?string $template;
+    private bool $isMarkdown;
     private Filesystem $filesystem;
 
-    public function __construct(Filesystem $filesystem, string $title, ?string $template)
+    public function __construct(Filesystem $filesystem, string $title, bool $isMarkdown)
     {
         $this->filesystem = $filesystem;
         $this->title = $title;
-        $this->template = $template;
+        $this->isMarkdown = $isMarkdown;
     }
 
     public function build(Config $config): void
@@ -33,14 +33,14 @@ final class Post
         $slug = strtolower(trim($this->title));
         $slug = preg_replace('/[^a-z0-9-]/', '-', $slug);
         $slug = preg_replace('/-+/', "-", $slug);
-        $extension = ($this->template) ? "md" : "blade.php";
+        $extension = ($this->isMarkdown) ? "md" : "blade.php";
 
         return sprintf('%s-%s-.%s', date('Y-m-d'), $slug, $extension);
     }
 
     public function buildTemplate(): string
     {
-        return ($this->template) ?
+        return ($this->isMarkdown) ?
             "---
             \rview::extends: _includes.blog_post_base
             \rview::yields: post_body
