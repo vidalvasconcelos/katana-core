@@ -1,9 +1,9 @@
 <?php
 
-namespace Katana;
+namespace Katana\Engine;
 
 use Illuminate\View\Compilers\BladeCompiler;
-use Illuminate\View\Factory;
+use function Katana\str_contains;
 
 class Blade
 {

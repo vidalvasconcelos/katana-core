@@ -19,11 +19,11 @@
   ],
   "require": {
     "php": "7.3.*",
-    "erusev/parsedown": "^1.6",
-    "illuminate/view": "5.2.*",
-    "mnapoli/front-yaml": "^1.5",
-    "symfony/console": "2.6.7",
-    "symfony/debug": "2.8.* || 3.0.*"
+    "erusev/parsedown": "1.7.*",
+    "illuminate/view": "8.37.*",
+    "mnapoli/front-yaml": "1.8.*",
+    "symfony/console": "5.2.*",
+    "symfony/debug": "4.4.*"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.13"

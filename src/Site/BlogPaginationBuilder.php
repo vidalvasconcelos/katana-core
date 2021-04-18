@@ -1,9 +1,10 @@
 <?php
 
-namespace Katana;
+namespace Katana\Site;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
+use function ends_with;
 
 class BlogPaginationBuilder
 {

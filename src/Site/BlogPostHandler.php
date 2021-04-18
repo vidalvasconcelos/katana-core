@@ -1,9 +1,11 @@
 <?php
 
-namespace Katana\FileHandlers;
+namespace Katana\Site;
 
+use Katana\Engine\Markdown;
 use Symfony\Component\Finder\SplFileInfo;
-use Katana\Markdown;
+use function array_where;
+use function str_is;
 
 class BlogPostHandler extends BaseHandler
 {
@@ -54,7 +56,7 @@ class BlogPostHandler extends BaseHandler
      */
     protected function getDirectoryPrettyName()
     {
-        $pathName = $this->normalizePath($this->file->getPathname());
+        $pathName = $this->normalizeWindowsFilepath($this->file->getPathname());
         
         // If the post is inside a child directory of the _blog directory then
         // we deal with it like regular site files and generate a nested

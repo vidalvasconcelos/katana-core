@@ -1,13 +1,14 @@
 <?php
 
-namespace Katana;
+namespace Katana\Engine;
 
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\View\Compilers\BladeCompiler;
-use Symfony\Component\Finder\SplFileInfo;
-use Illuminate\View\Engines\PhpEngine;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\View\Compilers\BladeCompiler;
+use Illuminate\View\Engines\PhpEngine;
 use Illuminate\View\Factory;
+use Symfony\Component\Finder\SplFileInfo;
+use const Katana\DIRECTORY_CACHE;
 
 class MarkdownFileBuilder
 {

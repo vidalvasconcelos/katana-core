@@ -1,11 +1,13 @@
 <?php
 
-namespace Katana\FileHandlers;
+namespace Katana\Site;
 
-use Katana\MarkdownFileBuilder;
-use Symfony\Component\Finder\SplFileInfo;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;
+use Katana\Engine\MarkdownFileBuilder;
+use Symfony\Component\Finder\SplFileInfo;
+use function ends_with;
+use const Katana\FileHandlers\KATANA_PUBLIC_DIR;
 
 class BaseHandler
 {
@@ -61,14 +63,14 @@ class BaseHandler
     public function handle(SplFileInfo $file)
     {
         $this->file = $file;
-
         $this->viewPath = $this->getViewPath();
-
         $this->directory = $this->getDirectoryPrettyName();
-
         $this->appendViewInformationToData();
 
-        if (@$this->viewsData['enableBlog'] && @$this->viewsData['postsListView'] == $this->viewPath) {
+        if (
+            @$this->viewsData['enableBlog']
+            && @$this->viewsData['postsListView'] == $this->viewPath
+        ) {
             $this->prepareBlogIndexViewData();
         }
 
@@ -84,14 +86,7 @@ class BaseHandler
         );
     }
 
-    /**
-     * Get the content of the file after rendering.
-     *
-     * @param SplFileInfo $file
-     *
-     * @return string
-     */
-    protected function getFileContent()
+    protected function getFileContent(): string
     {
         if (ends_with($this->file->getFilename(), '.blade.php')) {
             return $this->renderBlade();
@@ -102,34 +97,18 @@ class BaseHandler
         return $this->file->getContents();
     }
 
-    /**
-     * Render the blade file.
-     *
-     * @return string
-     */
-    protected function renderBlade()
+    protected function renderBlade(): string
     {
         return $this->viewFactory->make($this->viewPath, $this->viewsData)->render();
     }
 
-    /**
-     * Render the markdown file.
-     *
-     * @return string
-     */
-    protected function renderMarkdown()
+    protected function renderMarkdown(): string
     {
         $markdownFileBuilder = new MarkdownFileBuilder($this->filesystem, $this->viewFactory, $this->file, $this->viewsData);
-
         return $markdownFileBuilder->render();
     }
 
-    /**
-     * Prepare and get the directory name for pretty URLs.
-     *
-     * @return string
-     */
-    protected function prepareAndGetDirectory()
+    protected function prepareAndGetDirectory(): string
     {
         if (! $this->filesystem->isDirectory($this->directory)) {
             $this->filesystem->makeDirectory($this->directory, 0755, true);
@@ -138,16 +117,10 @@ class BaseHandler
         return $this->directory;
     }
 
-    /**
-     * Generate directory path to be used for the file pretty name.
-     *
-     * @return string
-     */
-    protected function getDirectoryPrettyName()
+    protected function getDirectoryPrettyName(): string
     {
         $fileBaseName = $this->getFileName();
-
-        $fileRelativePath = $this->normalizePath($this->file->getRelativePath());
+        $fileRelativePath = $this->normalizeWindowsFilepath($this->file->getRelativePath());
 
         if (in_array($this->file->getExtension(), ['php', 'md']) && $fileBaseName != 'index') {
             $fileRelativePath .= $fileRelativePath ? "/$fileBaseName" : $fileBaseName;
@@ -156,12 +129,7 @@ class BaseHandler
         return KATANA_PUBLIC_DIR.($fileRelativePath ? "/$fileRelativePath" : '');
     }
 
-    /**
-     * Get the path of the view.
-     *
-     * @return string
-     */
-    protected function getViewPath()
+    protected function getViewPath(): string
     {
         return str_replace(['.blade.php', '.md'], '', $this->file->getRelativePathname());
     }
@@ -178,42 +146,23 @@ class BaseHandler
         $postsPerPage = @$this->viewsData['postsPerPage'] ?: 5;
 
         $this->viewsData['nextPage'] = count($this->viewsData['blogPosts']) > $postsPerPage ? '/blog-page/2' : null;
-
         $this->viewsData['previousPage'] = null;
-
         $this->viewsData['paginatedBlogPosts'] = array_slice($this->viewsData['blogPosts'], 0, $postsPerPage, true);
     }
 
-    /**
-     * Get the file name without the extension.
-     *
-     * @return string
-     */
-    protected function getFileName(SplFileInfo $file = null)
+    protected function getFileName(SplFileInfo $file = null): string
     {
         $file = $file ?: $this->file;
-
         return str_replace(['.blade.php', '.php', '.md'], '', $file->getBasename());
     }
 
-    /**
-     * Append the view file information to the view data.
-     *
-     * @return void
-     */
-    protected function appendViewInformationToData()
+    protected function appendViewInformationToData(): void
     {
         $this->viewsData['currentViewPath'] = $this->viewPath;
-
         $this->viewsData['currentUrlPath'] = ($path = str_replace(KATANA_PUBLIC_DIR, '', $this->directory)) ? $path : '/';
     }
-    
-    /**
-     * Normalize Windows file paths to UNIX style
-     *
-     * @return string
-     */
-    protected function normalizePath($path)
+
+    protected function normalizeWindowsFilepath(string $path): string
     {
         return str_replace("\\", '/', $path);
     }

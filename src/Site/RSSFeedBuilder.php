@@ -1,6 +1,6 @@
 <?php
 
-namespace Katana;
+namespace Katana\Site;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Factory;

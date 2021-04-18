@@ -1,41 +1,23 @@
 <?php
 
-namespace Katana;
+namespace Katana\Engine;
 
 use Mni\FrontYAML\Parser;
+use Parsedown;
 
 class Markdown
 {
-    /**
-     * Parse markdown
-     *
-     * @param $text
-     *
-     * @return string
-     */
-    static function parse($text)
+    public static function parse($text): string
     {
-        $parser = new \Parsedown();
-
+        $parser = new Parsedown();
         $text = static::cleanLeadingSpace($text);
 
         return $parser->text($text);
     }
 
-    /**
-     * Parse markdown with YAML headers
-     *
-     * This method returns an array of: content as the first member and
-     * YAML values as the second member.
-     *
-     * @param string $text
-     *
-     * @return array
-     */
-    public static function parseWithYAML($text)
+    public static function parseWithYAML(string $text): array
     {
         $parser = new Parser();
-
         $parsed = $parser->parse($text);
 
         return [$parsed->getContent(), $parsed->getYAML()];
@@ -48,11 +30,11 @@ class Markdown
      * be leading space due to code editor indentation, here we trim it
      * to avoid compiling the whole markdown block as a code block.
      *
-     * @param $text
+     * @param string $text
      *
      * @return string
      */
-    protected static function cleanLeadingSpace($text)
+    protected static function cleanLeadingSpace(string $text): string
     {
         $i = 0;
 
