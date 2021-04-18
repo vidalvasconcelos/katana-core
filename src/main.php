@@ -9,8 +9,8 @@ use Illuminate\View\Engines\CompilerEngine;
 use Illuminate\View\Engines\EngineResolver;
 use Illuminate\View\Factory;
 use Illuminate\View\FileViewFinder;
-use Katana\Commands\BuildCommand;
-use Katana\Commands\PostCommand;
+use Katana\Commands\BuildFactory;
+use Katana\Commands\PostFactory;
 use Symfony\Component\Console\Application;
 
 const DIRECTORY_CACHE   = 'DIRECTORY_PATH_CACHE_';
@@ -37,7 +37,7 @@ return static function (array $setting): void {
     $factory = new Factory($resolver, $viewFinder, $dispatcher);
 
     $application = new Application();
-    $application->add(new BuildCommand($factory, $filesystem));
-    $application->add(new PostCommand($factory, $filesystem));
+    $application->add(BuildFactory::make($factory, $filesystem));
+    $application->add(PostFactory::make($filesystem));
     $application->run();
 };
