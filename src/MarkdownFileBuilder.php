@@ -70,7 +70,7 @@ class MarkdownFileBuilder
 
         $this->fileYAML = $parsed[1];
 
-        $this->cached = KATANA_CACHE_DIR.'/'.sha1($this->file->getRelativePathname()).'.php';
+        $this->cached = DIRECTORY_CACHE.'/'.sha1($this->file->getRelativePathname()).'.php';
 
         $this->bladeCompiler = $this->getBladeCompiler();
 

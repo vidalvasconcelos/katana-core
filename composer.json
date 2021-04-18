@@ -1,7 +1,15 @@
 {
   "name": "themsaid/katana-core",
   "description": "Static site & blog generator with markdown support.",
-  "keywords": ["flat-file","cms","static","site","generator","markdown","blade"],
+  "keywords": [
+    "flat-file",
+    "cms",
+    "static",
+    "site",
+    "generator",
+    "markdown",
+    "blade"
+  ],
   "license": "MIT",
   "authors": [
     {
@@ -10,16 +18,24 @@
     }
   ],
   "require": {
-    "php": ">=5.5.9",
-    "symfony/console": "2.6.7",
-    "illuminate/view": "5.2.*",
+    "php": "7.3.*",
     "erusev/parsedown": "^1.6",
-    "symfony/debug": "2.8.*|3.0.*",
-    "mnapoli/front-yaml": "^1.5"
+    "illuminate/view": "5.2.*",
+    "mnapoli/front-yaml": "^1.5",
+    "symfony/console": "2.6.7",
+    "symfony/debug": "2.8.* || 3.0.*"
+  },
+  "require-dev": {
+    "ergebnis/composer-normalize": "^2.13"
   },
   "autoload": {
     "psr-4": {
       "Katana\\": "src"
     }
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "composer normalize"
+    ]
   }
 }

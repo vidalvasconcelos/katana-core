@@ -85,7 +85,7 @@ class BlogPaginationBuilder
 
         $pageContent = $this->viewFactory->make($view, $viewData)->render();
 
-        $directory = sprintf('%s/blog-page/%d', KATANA_PUBLIC_DIR, $pageIndex + 1);
+        $directory = sprintf('%s/blog-page/%d', DIRECTORY_PUBLIC, $pageIndex + 1);
 
         $this->filesystem->makeDirectory($directory, 0755, true);
 

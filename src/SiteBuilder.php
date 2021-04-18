@@ -112,10 +112,10 @@ class SiteBuilder
 
         $this->buildViewsData();
 
-        $this->filesystem->cleanDirectory(KATANA_PUBLIC_DIR);
+        $this->filesystem->cleanDirectory(DIRECTORY_PUBLIC);
 
         if ($this->forceBuild) {
-            $this->filesystem->cleanDirectory(KATANA_CACHE_DIR);
+            $this->filesystem->cleanDirectory(DIRECTORY_CACHE);
         }
 
         $this->handleSiteFiles($otherFiles);
@@ -197,7 +197,7 @@ class SiteBuilder
      */
     protected function getSiteFiles()
     {
-        $files = array_filter($this->filesystem->allFiles(KATANA_CONTENT_DIR), function (SplFileInfo $file) {
+        $files = array_filter($this->filesystem->allFiles(DIRECTORY_CONTENT), function (SplFileInfo $file) {
             return $this->filterFile($file);
         });
 
@@ -224,8 +224,8 @@ class SiteBuilder
      */
     protected function appendFiles(array &$files)
     {
-        if ($this->filesystem->exists(KATANA_CONTENT_DIR.'/.htaccess')) {
-            $files[] = new SplFileInfo(KATANA_CONTENT_DIR.'/.htaccess', '', '.htaccess');
+        if ($this->filesystem->exists(DIRECTORY_CONTENT.'/.htaccess')) {
+            $files[] = new SplFileInfo(DIRECTORY_CONTENT.'/.htaccess', '', '.htaccess');
         }
     }
 

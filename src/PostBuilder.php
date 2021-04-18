@@ -56,7 +56,7 @@ class PostBuilder
     {
         $this->filesystem->put(
 
-            sprintf('/%s/_blog/%s', KATANA_CONTENT_DIR, $this->nameFile()),
+            sprintf('/%s/_blog/%s', DIRECTORY_CONTENT, $this->nameFile()),
 
             $this->buildTemplate()
 
